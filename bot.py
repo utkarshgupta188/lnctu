@@ -15,7 +15,7 @@ cache = {}
 def extract_number(text):
     matches = re.findall(r"[0-9]+(?:\.[0-9]+)?", text)
     if matches:
-        num = matches[0]
+        num = matches[-1]  # get the LAST number (fix for "Present (P) : 402")
         return float(num) if "." in num else int(num)
     return 0
 
@@ -80,7 +80,7 @@ def auto_fetch():
 
 @app.route('/')
 def home():
-    return "✅ LNCTU Attendance API is running."
+    return "âœ… LNCTU Attendance API is running."
 
 @app.route('/attendance')
 def get_attendance():
