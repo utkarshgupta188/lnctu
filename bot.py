@@ -12,6 +12,10 @@ CACHE_TTL = 120  # 2 minutes
 CACHE_FILE = "attendance_cache.json"
 cache = {}
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
+
 def extract_number(text):
     matches = re.findall(r"[0-9]+(?:\.[0-9]+)?", text)
     if matches:
@@ -22,28 +26,37 @@ def extract_number(text):
 def fetch_attendance(username, password):
     try:
         with requests.Session() as session:
-            # Step 1: Load login page
-            login_page = session.get("https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin", timeout=15)
+            # Step 1: Load login page and get hidden fields
+            login_page = session.get("https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin", headers=HEADERS, timeout=15)
             soup = BeautifulSoup(login_page.text, 'html.parser')
 
-            viewstate = soup.find("input", {"id": "__VIEWSTATE"})["value"]
-            eventvalidation = soup.find("input", {"id": "__EVENTVALIDATION"})["value"]
+            viewstate_tag = soup.find("input", {"id": "__VIEWSTATE"})
+            eventvalidation_tag = soup.find("input", {"id": "__EVENTVALIDATION"})
 
-            # Step 2: Submit login form
+            if not viewstate_tag or not eventvalidation_tag:
+                return {"success": False, "message": "VIEWSTATE or EVENTVALIDATION not found"}
+
             payload = {
-                "__VIEWSTATE": viewstate,
-                "__EVENTVALIDATION": eventvalidation,
+                "__VIEWSTATE": viewstate_tag["value"],
+                "__EVENTVALIDATION": eventvalidation_tag["value"],
                 "userid": username,
                 "password": password,
                 "btnlogin": "Login"
             }
 
-            login_response = session.post("https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin", data=payload, timeout=15)
+            # Step 2: Login POST request
+            login_response = session.post(
+                "https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin",
+                data=payload,
+                headers=HEADERS,
+                timeout=15
+            )
+
             if "Invalid UserId or Password" in login_response.text:
                 return {"success": False, "message": "Invalid credentials"}
 
-            # Step 3: Visit attendance page
-            r = session.get("https://accsoft2.lnctu.ac.in/AccSoft2/Parents/StuAttendanceStatus.aspx", timeout=15)
+            # Step 3: Attendance Page
+            r = session.get("https://accsoft2.lnctu.ac.in/AccSoft2/Parents/StuAttendanceStatus.aspx", headers=HEADERS, timeout=15)
             soup = BeautifulSoup(r.text, "html.parser")
 
             def get_value(id_):
@@ -92,7 +105,7 @@ def auto_fetch():
 
 @app.route('/')
 def home():
-    return "✅ LNCTU Fast Attendance API is running."
+    return "✅ LNCTU Attendance API with headers is running."
 
 @app.route('/attendance')
 def attendance():
@@ -118,6 +131,6 @@ def attendance():
         save_cache()
     return jsonify(result)
 
-# Load cache and start background refresh
+# Load existing cache and start background refresh
 cache = load_cache()
 threading.Thread(target=auto_fetch, daemon=True).start()
