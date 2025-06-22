@@ -13,9 +13,9 @@ CACHE_FILE = "attendance_cache.json"
 cache = {}
 
 def extract_number(text):
-    matches = re.findall(r"[0-9]+(?:\.[0-9]+)?", text)
+    matches = re.findall(r"[0-9]+(?:\\.[0-9]+)?", text)
     if matches:
-        num = matches[-1]  # get the LAST number (fix for "Present (P) : 402")
+        num = matches[-1]  # extract the LAST number (works with "Present (P) : 402")
         return float(num) if "." in num else int(num)
     return 0
 
@@ -23,19 +23,21 @@ def fetch_attendance(username, password):
     try:
         s = requests.Session()
         login_url = 'https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin'
-        dashboard_url = 'https://accsoft2.lnctu.ac.in/AccSoft2/parents/parentStudentProfile'
+        attendance_url = 'https://accsoft2.lnctu.ac.in/AccSoft2/Parents/StuAttendanceStatus.aspx'
 
         payload = {
             "userid": username,
             "password": password
         }
 
+        # Login
         r = s.post(login_url, data=payload, timeout=10)
         if "Invalid UserId or Password" in r.text:
             return {"success": False, "message": "Invalid credentials"}
 
-        dash = s.get(dashboard_url)
-        soup = BeautifulSoup(dash.text, 'html.parser')
+        # Fetch attendance page
+        page = s.get(attendance_url)
+        soup = BeautifulSoup(page.text, 'html.parser')
 
         def from_span(id_):
             span = soup.find("span", {"id": id_})
@@ -80,7 +82,7 @@ def auto_fetch():
 
 @app.route('/')
 def home():
-    return "âœ… LNCTU Attendance API is running."
+    return "✅ LNCTU Attendance API is running (StuAttendanceStatus.aspx)."
 
 @app.route('/attendance')
 def get_attendance():
@@ -90,9 +92,11 @@ def get_attendance():
     if not username or not password:
         return jsonify({"success": False, "message": "Missing credentials"})
 
+    # Serve from cache if available
     if username in cache and cache[username]["password"] == password:
         return jsonify({"success": True, "data": cache[username]["data"]})
 
+    # Otherwise, fetch live and cache
     result = fetch_attendance(username, password)
     if result["success"]:
         cache[username] = {
@@ -103,6 +107,6 @@ def get_attendance():
         save_cache()
     return jsonify(result)
 
-# Load and start
+# Initialize cache and start auto-fetch in background
 cache = load_cache()
 threading.Thread(target=auto_fetch, daemon=True).start()
