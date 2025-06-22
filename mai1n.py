@@ -187,7 +187,6 @@ class LNCTAttendance:
             print(f"Form data keys: {list(form_data.keys())}")
             
             # Add delay to avoid being flagged as bot
-            time.sleep(2)
             
             # Submit login form
             print("Submitting login form...")
