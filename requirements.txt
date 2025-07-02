@@ -2,3 +2,7 @@ Flask
 requests
 beautifulsoup4
 gunicorn
+fastapi
+uvicorn
+requests
+urllib3
