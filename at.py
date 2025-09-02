@@ -107,7 +107,7 @@ class LNCTAttendance:
             soup = BeautifulSoup(r.content, 'html.parser')
 
             ids = {
-                'total_classes': ['ctl00_ContentPlaceHolder1_lbltotperiod111'],
+                'total_classes': ['ctl00_ctl00_ContentPlaceHolder1_cp2_lbltotperiod111'],
                 'present': ['ctl00_ContentPlaceHolder1_lbltotalp11'],
                 'absent': ['ctl00_ContentPlaceHolder1_lbltotala11'],
                 'leave': ['ctl00_ContentPlaceHolder1_lbltotall11'],
