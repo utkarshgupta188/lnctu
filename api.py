@@ -131,7 +131,7 @@ class LNCTAttendance:
             
             # Extract attendance data using specific IDs
             attendance_data = {
-                'total_classes': self.extract_value(soup, 'ctl00_ContentPlaceHolder1_lbltotperiod111', int),
+                'total_classes': self.extract_value(soup, 'ctl00_ctl00_ContentPlaceHolder1_cp2_lbltotperiod111', int),
                 'present': self.extract_value(soup, 'ctl00_ContentPlaceHolder1_lbltotalp11', int),
                 'absent': self.extract_value(soup, 'ctl00_ContentPlaceHolder1_lbltotala11', int),
                 'leave': self.extract_value(soup, 'ctl00_ContentPlaceHolder1_lbltotall11', int),
