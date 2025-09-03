@@ -108,11 +108,8 @@ class LNCTAttendance:
 
             ids = {
                 'total_classes': ['ctl00_ctl00_ContentPlaceHolder1_cp2_lbltotperiod111'],
-                'present': ['ctl00_ContentPlaceHolder1_lbltotalp11'],
-                'absent': ['ctl00_ContentPlaceHolder1_lbltotala11'],
-                'leave': ['ctl00_ContentPlaceHolder1_lbltotall11'],
-                'not_applicable': ['ctl00_ContentPlaceHolder1_lbltotaln11'],
-                'on_duty': ['ctl00_ContentPlaceHolder1_lbltotalo11']
+                'present': ['ctl00_ctl00_ContentPlaceHolder1_cp2_lbltotalp11'],
+                'absent': ['ctl00_ctl00_ContentPlaceHolder1_cp2_lbltotala11']
             }
 
             data = {}
