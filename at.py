@@ -131,9 +131,7 @@ class LNCTAttendance:
                 **data,
                 'percentage': percentage,
                 'overall_percentage': percentage,
-                'attended_classes': data['present'],
-                'timestamp': datetime.now().isoformat(),
-                'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'attended_classes': data['present']
             }, "Success"
 
         except Exception as e:
