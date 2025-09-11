@@ -1,20 +1,20 @@
-from flask import Flask, request, jsonify
-import requests
-from bs4 import BeautifulSoup
+import json
+import os
 import re
 import threading
 import time
-import os
-import json
+
+import requests
+from bs4 import BeautifulSoup
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 CACHE_TTL = 120  # 2 minutes
 CACHE_FILE = "attendance_cache.json"
 cache = {}
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+
 
 def extract_number(text):
     matches = re.findall(r"[0-9]+(?:\.[0-9]+)?", text)
@@ -23,12 +23,15 @@ def extract_number(text):
         return float(num) if "." in num else int(num)
     return 0
 
+
 def fetch_attendance(username, password):
     try:
         with requests.Session() as session:
             # Step 1: Load login page and get hidden fields
-            login_page = session.get("https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin", headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(login_page.text, 'html.parser')
+            login_page = session.get(
+                "https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin", headers=HEADERS, timeout=15
+            )
+            soup = BeautifulSoup(login_page.text, "html.parser")
 
             viewstate_tag = soup.find("input", {"id": "__VIEWSTATE"})
             eventvalidation_tag = soup.find("input", {"id": "__EVENTVALIDATION"})
@@ -41,7 +44,7 @@ def fetch_attendance(username, password):
                 "__EVENTVALIDATION": eventvalidation_tag["value"],
                 "userid": username,
                 "password": password,
-                "btnlogin": "Login"
+                "btnlogin": "Login",
             }
 
             # Step 2: Login POST request
@@ -49,14 +52,18 @@ def fetch_attendance(username, password):
                 "https://accsoft2.lnctu.ac.in/AccSoft2/parentLogin",
                 data=payload,
                 headers=HEADERS,
-                timeout=15
+                timeout=15,
             )
 
             if "Invalid UserId or Password" in login_response.text:
                 return {"success": False, "message": "Invalid credentials"}
 
             # Step 3: Attendance Page
-            r = session.get("https://accsoft2.lnctu.ac.in/AccSoft2/Parents/StuAttendanceStatus.aspx", headers=HEADERS, timeout=15)
+            r = session.get(
+                "https://accsoft2.lnctu.ac.in/AccSoft2/Parents/StuAttendanceStatus.aspx",
+                headers=HEADERS,
+                timeout=15,
+            )
             soup = BeautifulSoup(r.text, "html.parser")
 
             def get_value(id_):
@@ -68,13 +75,14 @@ def fetch_attendance(username, password):
                 "attended_classes": get_value("ctl00_ContentPlaceHolder1_lbltotalp11"),
                 "absent": get_value("ctl00_ContentPlaceHolder1_lbltotala11"),
                 "overall_percentage": get_value("ctl00_ContentPlaceHolder1_lblPer119"),
-                "last_updated": time.strftime("%d-%m-%Y %H:%M")
+                "last_updated": time.strftime("%d-%m-%Y %H:%M"),
             }
 
             return {"success": True, "data": data}
 
     except Exception as e:
         return {"success": False, "message": str(e)}
+
 
 def load_cache():
     if os.path.exists(CACHE_FILE):
@@ -85,9 +93,11 @@ def load_cache():
             return {}
     return {}
 
+
 def save_cache():
     with open(CACHE_FILE, "w") as f:
         json.dump(cache, f)
+
 
 def auto_fetch():
     while True:
@@ -99,15 +109,17 @@ def auto_fetch():
                 cache[username] = {
                     "password": password,
                     "data": result["data"],
-                    "last_updated": time.time()
+                    "last_updated": time.time(),
                 }
         save_cache()
 
-@app.route('/')
+
+@app.route("/")
 def home():
     return "✅ LNCTU Attendance API with headers is running."
 
-@app.route('/attendance')
+
+@app.route("/attendance")
 def attendance():
     username = request.args.get("username")
     password = request.args.get("password")
@@ -123,13 +135,10 @@ def attendance():
 
     result = fetch_attendance(username, password)
     if result["success"]:
-        cache[username] = {
-            "password": password,
-            "data": result["data"],
-            "last_updated": now
-        }
+        cache[username] = {"password": password, "data": result["data"], "last_updated": now}
         save_cache()
     return jsonify(result)
+
 
 # Load existing cache and start background refresh
 cache = load_cache()
