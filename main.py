@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, send_file
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -8,6 +8,7 @@ import urllib3
 from urllib.parse import urljoin
 from datetime import datetime
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -457,7 +458,30 @@ class LNCTAttendance:
         return subjects
 
 @app.route('/')
-def home():
+def serve_frontend():
+    """Serve React frontend"""
+    try:
+        frontend_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
+        if os.path.exists(os.path.join(frontend_path, 'index.html')):
+            return send_from_directory(frontend_path, 'index.html')
+        else:
+            # Fallback to API documentation if frontend not built
+            return api_documentation()
+    except Exception:
+        return api_documentation()
+
+@app.route('/<path:path>')
+def serve_static(path):
+    """Serve static files from React build"""
+    try:
+        frontend_path = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
+        return send_from_directory(frontend_path, path)
+    except Exception:
+        # If file not found in frontend, serve React app (for client-side routing)
+        return serve_frontend()
+
+def api_documentation():
+    """Fallback API documentation page"""
     return '''
     <!DOCTYPE html>
     <html>
@@ -543,7 +567,7 @@ def home():
     </html>
     '''
 
-@app.route('/check-site')
+@app.route('/api/check-site')
 def check_site():
     """Check if the LNCT site is accessible"""
     try:
@@ -567,7 +591,7 @@ def check_site():
             'site_accessible': False
         })
 
-@app.route('/attendance', methods=['GET', 'POST'])
+@app.route('/api/attendance', methods=['GET', 'POST'])
 @rate_limit(calls_per_minute=20)
 def get_attendance():
     try:
@@ -627,7 +651,7 @@ def get_attendance():
             'details': str(e)
         }), 500
 
-@app.route('/login-test', methods=['GET'])
+@app.route('/api/login-test', methods=['GET'])
 @rate_limit(calls_per_minute=10)
 def test_login():
     try:
@@ -663,7 +687,7 @@ def test_login():
             'error': str(e)
         }), 500
 
-@app.route('/debug-login', methods=['GET'])
+@app.route('/api/debug-login', methods=['GET'])
 @rate_limit(calls_per_minute=5)
 def debug_login():
     try:
