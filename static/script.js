@@ -362,6 +362,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryDiv = document.getElementById('analysis-summary');
         const { summary } = analysisData;
         
+        // Determine overall status class
+        const overallStatusClass = summary.overall_status === 'GOOD' ? 'success' : 
+                                   summary.overall_status === 'WARNING' ? 'warning' : 'danger';
+        
         summaryDiv.innerHTML = `
             <div class="analysis-card danger">
                 <div class="analysis-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
@@ -379,6 +383,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="analysis-sub">Above 75%</span>
                 </div>
             </div>
+            ${summary.overall_percentage ? `
+            <div class="analysis-card ${overallStatusClass}">
+                <div class="analysis-icon"><i class="fa-solid ${summary.overall_status === 'GOOD' ? 'fa-thumbs-up' : summary.overall_status === 'WARNING' ? 'fa-hand' : 'fa-circle-exclamation'}"></i></div>
+                <div class="analysis-info">
+                    <h4>${summary.overall_percentage}% Overall</h4>
+                    <p>${summary.overall_message}</p>
+                    <span class="analysis-sub">${summary.overall_status}</span>
+                </div>
+            </div>
+            ` : ''}
         `;
 
         // Render prediction table with full details
@@ -598,6 +612,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Weekly Leave Simulator
+    document.getElementById('run-week-simulation-btn').addEventListener('click', async () => {
+        if (!currentUsername || !currentPassword) return;
+        
+        try {
+            const response = await fetch(`/leave-simulator-week?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}`);
+            const result = await response.json();
+            if (result.success) {
+                renderWeekSimulation(result.data);
+            }
+        } catch (err) {
+            console.error('Failed to run week simulation:', err);
+        }
+    });
+
     function renderRiskEngine(data) {
         const summaryDiv = document.getElementById('risk-summary');
         const detailsDiv = document.getElementById('risk-details');
@@ -697,8 +726,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="sim-stats">
                         <span><i class="fa-solid fa-calendar"></i> ${data.simulated_day}</span>
                         <span><i class="fa-solid fa-book"></i> ${data.total_classes_on_day} classes</span>
-                        <span><i class="fa-solid fa-triangle-exclamation"></i> ${data.affected_subjects_count} subjects affected</span>
                     </div>
+                    ${data.overall_attendance ? `
+                    <div class="overall-attendance-impact">
+                        <div class="overall-metric">
+                            <span class="label">Current Overall:</span>
+                            <span class="value">${data.overall_attendance.current}%</span>
+                        </div>
+                        <div class="overall-metric">
+                            <span class="label">After Leave:</span>
+                            <span class="value ${data.overall_attendance.projected < 75 ? 'text-danger' : ''}">${data.overall_attendance.projected}%</span>
+                        </div>
+                        <div class="overall-metric">
+                            <span class="label">Drop:</span>
+                            <span class="value text-danger">-${data.overall_attendance.drop}%</span>
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -744,6 +788,77 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Scroll to results
         resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderWeekSimulation(data) {
+        const weekResultsDiv = document.getElementById('week-simulation-results');
+        const weekSummaryDiv = document.getElementById('week-summary');
+        const weekDetailsDiv = document.getElementById('week-details');
+        
+        weekResultsDiv.classList.remove('hidden');
+        
+        // Summary with current overall
+        weekSummaryDiv.innerHTML = `
+            <div class="week-summary-header">
+                <h3><i class="fa-solid fa-calendar-week"></i> Weekly Leave Analysis</h3>
+                <div class="current-overall">
+                    <span>Current Overall: <strong>${data.current_overall_percentage}%</strong></span>
+                </div>
+            </div>
+        `;
+        
+        // Day cards sorted by recommendation (best to worst)
+        weekDetailsDiv.innerHTML = `
+            <div class="week-days-grid">
+                ${data.week_simulation.map(day => {
+                    const recClass = day.recommendation.toLowerCase();
+                    const recIcon = day.recommendation === 'SAFE' ? 'fa-check-circle' : 
+                                   day.recommendation === 'CAUTION' ? 'fa-triangle-exclamation' :
+                                   day.recommendation === 'RISKY' ? 'fa-circle-xmark' : 'fa-ban';
+                    return `
+                        <div class="week-day-card ${recClass}">
+                            <div class="week-day-header">
+                                <h4>${day.day}</h4>
+                                <span class="week-rec-badge ${recClass}">
+                                    <i class="fa-solid ${recIcon}"></i> ${day.recommendation}
+                                </span>
+                            </div>
+                            <div class="week-day-stats">
+                                <div class="stat">
+                                    <span class="label">Classes:</span>
+                                    <span class="value">${day.total_class_units}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="label">Affected:</span>
+                                    <span class="value">${day.affected_subjects_count}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="label">Overall After:</span>
+                                    <span class="value ${day.projected_overall_percentage < 75 ? 'text-danger' : ''}">${day.projected_overall_percentage}%</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="label">Drop:</span>
+                                    <span class="value text-danger">-${day.overall_drop}%</span>
+                                </div>
+                            </div>
+                            ${day.subject_simulations.length > 0 ? `
+                            <div class="week-top-subjects">
+                                <span class="label">Most Impacted:</span>
+                                <div class="subject-tags">
+                                    ${day.subject_simulations.slice(0, 2).map(s => `
+                                        <span class="subject-tag ${s.impact_level.toLowerCase()}">${s.subject.split(' ').slice(0, 3).join(' ')}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        
+        // Scroll to results
+        weekResultsDiv.scrollIntoView({ behavior: 'smooth' });
     }
 
     function getRiskClass(percentage) {

@@ -550,22 +550,48 @@ def simulate_leave(username: str = "", password: str = "", day: str = ""):
     subjects = data.get('subjects', [])
     periods = TIMETABLE_DATA.get(day, [])
     
-    # Get subjects for this day (exclude non-academic periods)
-    day_subjects_raw = [p['subject'] for p in periods if p['subject'] not in ['LUNCH', 'Lunch Break', 'Mentor/Library', 'Innovative Practices']]
+    # Calculate class units based on duration (labs = 2 units, regular = 1 unit)
+    def get_class_units(time_str):
+        """Calculate class units based on time duration"""
+        try:
+            start, end = time_str.split('-')
+            start_h, start_m = map(int, start.split(':'))
+            end_h, end_m = map(int, end.split(':'))
+            duration_minutes = (end_h * 60 + end_m) - (start_h * 60 + start_m)
+            # Labs are typically 90+ minutes and count as 2 class units
+            return 2 if duration_minutes >= 80 else 1
+        except:
+            return 1
+    
+    # Build list of subjects with their class units for this day
+    day_subjects_with_units = []
+    for p in periods:
+        if p['subject'] not in ['LUNCH', 'Lunch Break', 'Mentor/Library', 'Innovative Practices']:
+            units = get_class_units(p['time'])
+            day_subjects_with_units.append({'subject': p['subject'], 'units': units})
+    
+    # Calculate total class units for display
+    total_class_units = sum(s['units'] for s in day_subjects_with_units)
+    
+    # Calculate current overall attendance
+    current_total_classes = sum(s['total'] for s in subjects)
+    current_present = sum(s['present'] for s in subjects)
+    current_overall_percentage = round((current_present / current_total_classes) * 100, 2) if current_total_classes > 0 else 0
     
     # Simulate the impact
     simulation_results = []
     total_impact_score = 0
     affected_subjects = set()
+    total_absences_on_day = 0
     
     for subj in subjects:
         subj_name = subj['name']
         
-        # Count how many classes of this subject are on this day
+        # Count how many class units of this subject are on this day
         classes_on_day = 0
-        for timetable_subj in day_subjects_raw:
-            if subjects_match(subj_name, timetable_subj):
-                classes_on_day += 1
+        for item in day_subjects_with_units:
+            if subjects_match(subj_name, item['subject']):
+                classes_on_day += item['units']
         
         if classes_on_day > 0:
             affected_subjects.add(subj_name)
@@ -584,6 +610,7 @@ def simulate_leave(username: str = "", password: str = "", day: str = ""):
                 impact_level = 'LOW'
             
             total_impact_score += {'SEVERE': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1}.get(impact_level, 0)
+            total_absences_on_day += classes_on_day
             
             simulation_results.append({
                 'subject': subj_name,
@@ -614,17 +641,28 @@ def simulate_leave(username: str = "", password: str = "", day: str = ""):
         recommendation = 'SAFE'
         advice = 'Low impact on attendance. Good day for leave!'
     
+    # Calculate projected overall attendance after leave
+    projected_total_classes = current_total_classes + total_absences_on_day
+    projected_present = current_present  # Didn't attend any
+    projected_overall_percentage = round((projected_present / projected_total_classes) * 100, 2) if projected_total_classes > 0 else 0
+    overall_percentage_drop = round(current_overall_percentage - projected_overall_percentage, 2)
+    
     return {
         "success": True,
         "data": {
             "simulated_day": day,
-            "total_classes_on_day": len(day_subjects_raw),
+            "total_classes_on_day": total_class_units,
             "affected_subjects_count": len(simulation_results),
             "recommendation": recommendation,
             "advice": advice,
             "total_impact_score": total_impact_score,
             "subject_simulations": simulation_results,
-            "subjects_not_affected": [s['name'] for s in subjects if s['name'] not in affected_subjects]
+            "subjects_not_affected": [s['name'] for s in subjects if s['name'] not in affected_subjects],
+            "overall_attendance": {
+                "current": current_overall_percentage,
+                "projected": projected_overall_percentage,
+                "drop": overall_percentage_drop
+            }
         }
     }
 
@@ -726,6 +764,22 @@ def get_attendance_analysis(username: str = "", password: str = ""):
                 'message': f"Can miss {metrics['absents_allowed']} classes and maintain 75%"
             })
     
+    # Calculate overall attendance
+    total_classes = sum(s['total'] for s in subjects)
+    total_present = sum(s['present'] for s in subjects)
+    overall_percentage = round((total_present / total_classes) * 100, 2) if total_classes > 0 else 0
+    
+    # Determine overall status message
+    if overall_percentage >= 75:
+        overall_status = "GOOD"
+        overall_message = "Your attendance is in good shape! Keep it up!"
+    elif overall_percentage >= 60:
+        overall_status = "WARNING"
+        overall_message = "Your attendance is manageable. Try to attend more classes."
+    else:
+        overall_status = "CRITICAL"
+        overall_message = "Your attendance is very low! Attend classes regularly."
+    
     return {
         "success": True,
         "data": {
@@ -733,13 +787,148 @@ def get_attendance_analysis(username: str = "", password: str = ""):
                 "total_subjects": len(subjects),
                 "at_risk_count": len(at_risk),
                 "moderate_count": len(moderate),
-                "safe_count": len(safe)
+                "safe_count": len(safe),
+                "overall_percentage": overall_percentage,
+                "overall_status": overall_status,
+                "overall_message": overall_message
             },
             "at_risk_subjects": at_risk,
             "moderate_subjects": moderate,
             "safe_subjects": safe,
             "day_analysis": day_analysis,
             "predictions": predictions
+        }
+    }
+
+
+@app.get("/leave-simulator-week")
+def simulate_leave_week(username: str = "", password: str = ""):
+    """
+    Leave Simulation Engine - Simulate missing classes for the whole week
+    Returns impact analysis for each day (Monday-Friday)
+    """
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Username and password are required")
+    
+    cleanup_expired_sessions()
+    data, msg = _get_or_create_session(username, password)
+    
+    if not data or 'subjects' not in data:
+        raise HTTPException(status_code=500, detail="Failed to fetch attendance data")
+    
+    subjects = data.get('subjects', [])
+    
+    # Calculate current overall attendance
+    current_total_classes = sum(s['total'] for s in subjects)
+    current_present = sum(s['present'] for s in subjects)
+    current_overall_percentage = round((current_present / current_total_classes) * 100, 2) if current_total_classes > 0 else 0
+    
+    # Calculate class units based on duration
+    def get_class_units(time_str):
+        try:
+            start, end = time_str.split('-')
+            start_h, start_m = map(int, start.split(':'))
+            end_h, end_m = map(int, end.split(':'))
+            duration_minutes = (end_h * 60 + end_m) - (start_h * 60 + start_m)
+            return 2 if duration_minutes >= 80 else 1
+        except:
+            return 1
+    
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    week_simulation = []
+    
+    for day in days:
+        periods = TIMETABLE_DATA.get(day, [])
+        
+        # Build list of subjects with their class units
+        day_subjects_with_units = []
+        for p in periods:
+            if p['subject'] not in ['LUNCH', 'Lunch Break', 'Mentor/Library', 'Innovative Practices']:
+                units = get_class_units(p['time'])
+                day_subjects_with_units.append({'subject': p['subject'], 'units': units})
+        
+        total_class_units = sum(s['units'] for s in day_subjects_with_units)
+        
+        # Simulate impact for this day
+        simulation_results = []
+        total_impact_score = 0
+        total_absences_on_day = 0
+        
+        for subj in subjects:
+            subj_name = subj['name']
+            
+            classes_on_day = 0
+            for item in day_subjects_with_units:
+                if subjects_match(subj_name, item['subject']):
+                    classes_on_day += item['units']
+            
+            if classes_on_day > 0:
+                new_total = subj['total'] + classes_on_day
+                new_present = subj['present']
+                new_percentage = round((new_present / new_total) * 100, 2) if new_total > 0 else 0
+                percentage_drop = round(subj['percentage'] - new_percentage, 2)
+                
+                if subj['percentage'] < 75:
+                    impact_level = 'SEVERE' if percentage_drop > 2 else 'HIGH'
+                else:
+                    impact_level = 'LOW'
+                
+                total_impact_score += {'SEVERE': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1}.get(impact_level, 0)
+                total_absences_on_day += classes_on_day
+                
+                simulation_results.append({
+                    'subject': subj_name,
+                    'current_percentage': subj['percentage'],
+                    'classes_on_this_day': classes_on_day,
+                    'projected_percentage': new_percentage,
+                    'percentage_drop': percentage_drop,
+                    'impact_level': impact_level,
+                    'will_fall_below_75': new_percentage < 75 and subj['percentage'] >= 75
+                })
+        
+        # Sort by impact
+        severity_order = {'SEVERE': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3}
+        simulation_results.sort(key=lambda x: severity_order.get(x['impact_level'], 4))
+        
+        # Recommendation
+        if total_impact_score >= 10:
+            recommendation = 'AVOID'
+            advice = 'Severe impact!'
+        elif total_impact_score >= 6:
+            recommendation = 'RISKY'
+            advice = 'High impact'
+        elif total_impact_score >= 3:
+            recommendation = 'CAUTION'
+            advice = 'Moderate impact'
+        else:
+            recommendation = 'SAFE'
+            advice = 'Low impact'
+        
+        # Calculate projected overall
+        projected_total = current_total_classes + total_absences_on_day
+        projected_pct = round((current_present / projected_total) * 100, 2) if projected_total > 0 else 0
+        
+        week_simulation.append({
+            'day': day,
+            'total_class_units': total_class_units,
+            'affected_subjects_count': len(simulation_results),
+            'recommendation': recommendation,
+            'advice': advice,
+            'total_impact_score': total_impact_score,
+            'projected_overall_percentage': projected_pct,
+            'overall_drop': round(current_overall_percentage - projected_pct, 2),
+            'subject_simulations': simulation_results[:3]  # Top 3 most impacted
+        })
+    
+    # Sort days by recommendation (best to worst)
+    rec_order = {'SAFE': 0, 'CAUTION': 1, 'RISKY': 2, 'AVOID': 3}
+    week_simulation.sort(key=lambda x: rec_order.get(x['recommendation'], 4))
+    
+    return {
+        "success": True,
+        "data": {
+            "current_overall_percentage": current_overall_percentage,
+            "week_simulation": week_simulation
         }
     }
 

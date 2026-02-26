@@ -1433,35 +1433,214 @@ tr:last-child td {
     gap: 0.5rem;
 }
 
-.unaffected-subjects {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background: rgba(16, 185, 129, 0.1);
-    border-radius: 12px;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+.overall-attendance-impact {
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
 }
 
-.unaffected-subjects h4 {
-    color: #10b981;
-    font-size: 1rem;
-    margin-bottom: 0.8rem;
+.overall-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.overall-metric .label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.overall-metric .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.overall-metric .value.text-danger {
+    color: #ef4444;
+}
+
+/* Weekly Simulation Styles */
+.week-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.week-summary-header h3 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    color: var(--text-primary);
 }
 
-.unaffected-list {
+.current-overall {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+.current-overall strong {
+    color: var(--accent-primary);
+    font-size: 1.3rem;
+}
+
+.week-days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.week-day-card {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 12px;
+    padding: 1.2rem;
+    border: 2px solid transparent;
+    transition: transform 0.2s;
+}
+
+.week-day-card:hover {
+    transform: translateY(-4px);
+}
+
+.week-day-card.safe {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.5));
+}
+
+.week-day-card.caution {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(15, 23, 42, 0.5));
+}
+
+.week-day-card.risky {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(15, 23, 42, 0.5));
+}
+
+.week-day-card.avoid {
+    border-color: rgba(220, 38, 38, 0.4);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(15, 23, 42, 0.5));
+}
+
+.week-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.week-day-header h4 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.week-rec-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.week-rec-badge.safe {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.week-rec-badge.caution {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.week-rec-badge.risky {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.week-rec-badge.avoid {
+    background: rgba(220, 38, 38, 0.2);
+    color: #dc2626;
+}
+
+.week-day-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.week-day-stats .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.week-day-stats .stat .label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.week-day-stats .stat .value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.week-day-stats .stat .value.text-danger {
+    color: #ef4444;
+}
+
+.week-top-subjects {
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--glass-border);
+}
+
+.week-top-subjects .label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.week-top-subjects .subject-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
-.unaffected-tag {
-    padding: 0.3rem 0.6rem;
+.week-top-subjects .subject-tag {
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.week-top-subjects .subject-tag.severe {
+    background: rgba(220, 38, 38, 0.2);
+    color: #dc2626;
+}
+
+.week-top-subjects .subject-tag.high {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.week-top-subjects .subject-tag.low {
     background: rgba(16, 185, 129, 0.15);
     color: #10b981;
-    border-radius: 6px;
-    font-size: 0.85rem;
 }
 
 /* Utility */
