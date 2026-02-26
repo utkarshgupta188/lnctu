@@ -797,12 +797,41 @@ document.addEventListener('DOMContentLoaded', () => {
         
         weekResultsDiv.classList.remove('hidden');
         
-        // Summary with current overall
+        // Summary with current overall and whole week leave
+        const wholeWeek = data.whole_week_leave;
+        const weekStatusClass = wholeWeek.projected_overall_percentage < 60 ? 'critical' : 
+                                wholeWeek.projected_overall_percentage < 75 ? 'warning' : 'safe';
+        
         weekSummaryDiv.innerHTML = `
             <div class="week-summary-header">
                 <h3><i class="fa-solid fa-calendar-week"></i> Weekly Leave Analysis</h3>
                 <div class="current-overall">
                     <span>Current Overall: <strong>${data.current_overall_percentage}%</strong></span>
+                </div>
+            </div>
+            <div class="whole-week-leave-box ${weekStatusClass}">
+                <div class="whole-week-header">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>If You Take Whole Week Leave</span>
+                </div>
+                <div class="whole-week-stats">
+                    <div class="stat">
+                        <span class="label">Total Absences:</span>
+                        <span class="value">${wholeWeek.total_absences} classes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Overall After:</span>
+                        <span class="value ${wholeWeek.projected_overall_percentage < 75 ? 'text-danger' : ''}">${wholeWeek.projected_overall_percentage}%</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Total Drop:</span>
+                        <span class="value text-danger">-${wholeWeek.overall_drop}%</span>
+                    </div>
+                </div>
+                <div class="whole-week-message">
+                    ${wholeWeek.projected_overall_percentage < 60 ? '⚠️ Critical! Your attendance will be very low!' : 
+                      wholeWeek.projected_overall_percentage < 75 ? '⚠️ Warning! You will fall below 75%!' : 
+                      '✓ Safe! You will maintain above 75%.'}
                 </div>
             </div>
         `;

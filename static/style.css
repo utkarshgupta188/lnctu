@@ -1643,6 +1643,97 @@ tr:last-child td {
     color: #10b981;
 }
 
+/* Whole Week Leave Box */
+.whole-week-leave-box {
+    margin: 1.5rem 0;
+    padding: 1.2rem;
+    border-radius: 12px;
+    border: 2px solid;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.whole-week-leave-box.safe {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.5));
+}
+
+.whole-week-leave-box.warning {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(15, 23, 42, 0.5));
+}
+
+.whole-week-leave-box.critical {
+    border-color: rgba(220, 38, 38, 0.4);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(15, 23, 42, 0.5));
+}
+
+.whole-week-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.whole-week-leave-box.safe .whole-week-header {
+    color: #10b981;
+}
+
+.whole-week-leave-box.warning .whole-week-header {
+    color: #f59e0b;
+}
+
+.whole-week-leave-box.critical .whole-week-header {
+    color: #dc2626;
+}
+
+.whole-week-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.whole-week-stats .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.whole-week-stats .stat .label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.whole-week-stats .stat .value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.whole-week-message {
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.whole-week-leave-box.safe .whole-week-message {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.whole-week-leave-box.warning .whole-week-message {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.whole-week-leave-box.critical .whole-week-message {
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+}
+
 /* Utility */
 .hidden {
     display: none !important;

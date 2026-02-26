@@ -399,7 +399,7 @@ def debug_subjects(username: str = "", password: str = ""):
     timetable_subjects = set()
     for day, periods in TIMETABLE_DATA.items():
         for p in periods:
-            if p['subject'] not in ['LUNCH', 'Lunch Break', 'Mentor/Library', 'Innovative Practices']:
+            if p['subject'] not in ['LUNCH', 'Lunch Break']:
                 timetable_subjects.add(p['subject'])
     
     # Check matching
@@ -566,7 +566,7 @@ def simulate_leave(username: str = "", password: str = "", day: str = ""):
     # Build list of subjects with their class units for this day
     day_subjects_with_units = []
     for p in periods:
-        if p['subject'] not in ['LUNCH', 'Lunch Break', 'Mentor/Library', 'Innovative Practices']:
+        if p['subject'] not in ['LUNCH', 'Lunch Break']:
             units = get_class_units(p['time'])
             day_subjects_with_units.append({'subject': p['subject'], 'units': units})
     
@@ -708,7 +708,7 @@ def get_attendance_analysis(username: str = "", password: str = ""):
     day_analysis = {}
     for day, periods in TIMETABLE_DATA.items():
         # Filter out lunch and non-academic periods
-        day_subjects_raw = [p['subject'] for p in periods if p['subject'] not in ['LUNCH', 'Lunch Break', 'Mentor/Library', 'Innovative Practices']]
+        day_subjects_raw = [p['subject'] for p in periods if p['subject'] not in ['LUNCH', 'Lunch Break']]
         
         # Count at-risk and safe subjects for this day
         at_risk_count = 0
@@ -843,7 +843,7 @@ def simulate_leave_week(username: str = "", password: str = ""):
         # Build list of subjects with their class units
         day_subjects_with_units = []
         for p in periods:
-            if p['subject'] not in ['LUNCH', 'Lunch Break', 'Mentor/Library', 'Innovative Practices']:
+            if p['subject'] not in ['LUNCH', 'Lunch Break']:
                 units = get_class_units(p['time'])
                 day_subjects_with_units.append({'subject': p['subject'], 'units': units})
         
@@ -920,15 +920,31 @@ def simulate_leave_week(username: str = "", password: str = ""):
             'subject_simulations': simulation_results[:3]  # Top 3 most impacted
         })
     
-    # Sort days by recommendation (best to worst)
-    rec_order = {'SAFE': 0, 'CAUTION': 1, 'RISKY': 2, 'AVOID': 3}
-    week_simulation.sort(key=lambda x: rec_order.get(x['recommendation'], 4))
+    # Calculate whole week leave impact using raw timetable data (not affected subjects)
+    total_week_absences = 0
+    for day in days:
+        periods = TIMETABLE_DATA.get(day, [])
+        for p in periods:
+            if p['subject'] not in ['LUNCH', 'Lunch Break']:
+                total_week_absences += get_class_units(p['time'])
+    
+    projected_total_week = current_total_classes + total_week_absences
+    projected_pct_week = round((current_present / projected_total_week) * 100, 2) if projected_total_week > 0 else 0
+    
+    # Keep days in Monday-Friday order
+    day_order = {'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4}
+    week_simulation.sort(key=lambda x: day_order.get(x['day'], 5))
     
     return {
         "success": True,
         "data": {
             "current_overall_percentage": current_overall_percentage,
-            "week_simulation": week_simulation
+            "week_simulation": week_simulation,
+            "whole_week_leave": {
+                "total_absences": total_week_absences,
+                "projected_overall_percentage": projected_pct_week,
+                "overall_drop": round(current_overall_percentage - projected_pct_week, 2)
+            }
         }
     }
 
