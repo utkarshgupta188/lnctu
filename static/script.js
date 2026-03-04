@@ -131,6 +131,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderDashboard(data) {
+        // Update Welcome Message
+        const welcomeMsg = document.getElementById('welcome-message');
+        const nameDisplay = document.getElementById('student-name-display');
+        if (data.student_name && data.student_name !== '') {
+            nameDisplay.textContent = data.student_name;
+            welcomeMsg.classList.remove('hidden');
+            welcomeMsg.style.display = 'inline-block';
+        } else {
+            welcomeMsg.classList.add('hidden');
+            welcomeMsg.style.display = 'none';
+        }
+
         // Update Stats
         document.getElementById('total-classes').textContent = data.total_classes;
         document.getElementById('present-classes').textContent = data.present;

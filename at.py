@@ -62,8 +62,16 @@ class LNCTAttendance:
 
     def _check_login_success(self, res):
         if "studentLogin.aspx" not in res.url and any(x in res.text.lower() for x in ['dashboard', 'attendance', 'logout']):
-            return True, "Login successful"
-        return False, "Invalid credentials"
+            name = ""
+            try:
+                soup = BeautifulSoup(res.content, 'html.parser')
+                name_span = soup.find('span', class_='d-lg-inline-flex d-none')
+                if name_span:
+                    name = name_span.text.strip()
+            except Exception as e:
+                logger.error(f"Error extracting name: {e}")
+            return True, "Login successful", name
+        return False, "Invalid credentials", ""
 
     def login(self, username, password):
         try:
@@ -90,7 +98,7 @@ class LNCTAttendance:
 
         except Exception as e:
             logger.error(f"Login error: {e}")
-            return False, str(e)
+            return False, str(e), ""
 
     def extract_value(self, soup, element_id, convert_type=str):
         try:
@@ -239,18 +247,24 @@ def cleanup_expired_sessions():
 def _get_or_create_session(username, password):
     if username in user_sessions:
         lnct = user_sessions[username]['lnct']
+        name = user_sessions[username].get('name', '')
         data, msg = lnct.get_attendance()
         if data:
+            data['student_name'] = name
             return data, "Used cached session"
         del user_sessions[username]
 
     lnct = LNCTAttendance()
-    ok, msg = lnct.login(username, password)
+    result = lnct.login(username, password)
+    ok = result[0]
+    msg = result[1]
+    name = result[2] if len(result) > 2 else ""
     if not ok:
         raise HTTPException(status_code=401, detail=msg)
 
     user_sessions[username] = {
         'lnct': lnct,
+        'name': name,
         'last_login': datetime.now()
     }
 
@@ -258,6 +272,7 @@ def _get_or_create_session(username, password):
     if not data:
         raise HTTPException(status_code=500, detail=msg)
     
+    data['student_name'] = name
     return data, "Logged in and fetched"
 
 
@@ -291,6 +306,7 @@ def attendance_lite(username: str = "", password: str = ""):
         "success": True,
         "message": msg,
         "data": {
+            "student_name": data.get("student_name", ""),
             "total_classes": data["total_classes"],
             "present": data["present"],
             "absent": data["absent"],
