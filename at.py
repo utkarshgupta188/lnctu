@@ -348,7 +348,7 @@ TIMETABLE_DATA = {
         {"time": "10:30-11:20", "subject": "Software Engineering and Project Management-T"},
         {"time": "11:20-12:10", "subject": "Web Technology"},
         {"time": "12:10-01:00", "subject": "LUNCH"},
-        {"time": "01:00-02:40", "subject": "Software Engineering and Project Management-P"},
+        {"time": "01:00-02:40", "subject": "Analysis and Design of Algorithms-P"},
         {"time": "02:40-03:30", "subject": "Machine Learning and Pattern Recognition"},
     ],
     "Thursday": [
