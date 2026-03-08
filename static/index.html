@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LNCT Attendance Dashboard</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="apple-touch-icon" href="/static/icon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,6 +18,10 @@
 
 <body>
     <div class="app-container">
+        <!-- Background Elements -->
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+
         <!-- Login Section -->
         <section id="login-section" class="active-section">
             <div class="login-card">
@@ -47,8 +54,10 @@
                 <div class="nav-brand">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Dashboard</span>
-                    <div id="welcome-message" class="hidden" style="margin-left: 15px; font-size: 0.9rem; font-weight: 500; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 15px;">
-                        Welcome, <span id="student-name-display" style="font-weight: 700; color: var(--accent-primary);"></span>
+                    <div id="welcome-message" class="hidden"
+                        style="margin-left: 15px; font-size: 0.9rem; font-weight: 500; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 15px;">
+                        Welcome, <span id="student-name-display"
+                            style="font-weight: 700; color: var(--accent-primary);"></span>
                     </div>
                 </div>
                 <button id="logout-btn" class="btn-icon" title="Logout">
@@ -140,7 +149,7 @@
                             <i class="fa-solid fa-rotate"></i> Refresh
                         </button>
                     </div>
-                    
+
                     <!-- Analysis Summary Cards -->
                     <div class="analysis-summary" id="analysis-summary">
                         <div class="analysis-loading">
@@ -169,8 +178,10 @@
                                 <tbody>
                                     <tr class="loading-row">
                                         <td colspan="8" style="text-align: center; padding: 2rem;">
-                                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--accent-primary);"></i>
-                                            <p style="margin-top: 0.5rem; color: var(--text-secondary);">Loading predictions...</p>
+                                            <i class="fa-solid fa-spinner fa-spin"
+                                                style="font-size: 1.5rem; color: var(--accent-primary);"></i>
+                                            <p style="margin-top: 0.5rem; color: var(--text-secondary);">Loading
+                                                predictions...</p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -190,7 +201,7 @@
                             <button id="analyze-risk-btn" class="btn-secondary btn-sm">Analyze</button>
                         </div>
                     </div>
-                    
+
                     <div id="risk-engine-content" class="risk-content">
                         <div class="risk-summary" id="risk-summary">
                             <!-- Injected by JS -->
@@ -215,10 +226,11 @@
                                 <option value="Friday">Friday</option>
                             </select>
                             <button id="run-simulation-btn" class="btn-secondary">Simulate Leave</button>
-                            <button id="run-week-simulation-btn" class="btn-secondary btn-accent">Simulate Whole Week</button>
+                            <button id="run-week-simulation-btn" class="btn-secondary btn-accent">Simulate Whole
+                                Week</button>
                         </div>
                     </div>
-                    
+
                     <div id="simulation-results" class="simulation-content hidden">
                         <div class="simulation-summary" id="simulation-summary">
                             <!-- Injected by JS -->
@@ -227,7 +239,7 @@
                             <!-- Injected by JS -->
                         </div>
                     </div>
-                    
+
                     <!-- Weekly Simulation Results -->
                     <div id="week-simulation-results" class="simulation-content hidden" style="margin-top: 1.5rem;">
                         <div class="week-summary" id="week-summary">

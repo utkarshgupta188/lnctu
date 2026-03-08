@@ -973,6 +973,15 @@ def simulate_leave_week(username: str = "", password: str = ""):
 def root():
     return FileResponse('static/index.html')
 
+@app.get("/manifest.json")
+def serve_manifest():
+    return FileResponse('static/manifest.json', media_type='application/manifest+json')
+
+@app.get("/sw.js")
+def serve_sw():
+    # Return sw.js with application/javascript type and specify path
+    return FileResponse('static/sw.js', media_type='application/javascript')
+
 @app.get("/static/style.css")
 def serve_css():
     return FileResponse('static/style.css', media_type='text/css')
@@ -980,3 +989,7 @@ def serve_css():
 @app.get("/static/script.js")
 def serve_js():
     return FileResponse('static/script.js', media_type='application/javascript')
+
+@app.get("/static/icon.svg")
+def serve_icon():
+    return FileResponse('static/icon.svg', media_type='image/svg+xml')
