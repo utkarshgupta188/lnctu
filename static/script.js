@@ -643,6 +643,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const resultsDiv = document.getElementById('simulation-results');
         resultsDiv.classList.remove('hidden');
+        const emptyState = document.getElementById('sim-empty-state');
+        if (emptyState) emptyState.classList.add('hidden');
         document.getElementById('simulation-summary').innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--accent-primary);"></i><p style="margin-top: 1rem; color: var(--text-secondary);">Running simulation...</p></div>';
         document.getElementById('simulation-details').innerHTML = '';
 
@@ -673,6 +675,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const reqDiv = document.getElementById('week-simulation-results');
         if (reqDiv) {
             reqDiv.classList.remove('hidden');
+            const emptyState = document.getElementById('sim-empty-state');
+            if (emptyState) emptyState.classList.add('hidden');
             document.getElementById('week-summary').innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--accent-primary);"></i><p style="margin-top: 1rem; color: var(--text-secondary);">Running weekly simulation...</p></div>';
             document.getElementById('week-details').innerHTML = '';
         }
