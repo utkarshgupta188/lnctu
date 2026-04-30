@@ -1044,13 +1044,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const bodyDiv = document.getElementById('absent-dates-body');
         
         if (!data || data.total_absents === 0) {
-            bodyDiv.innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fa-solid fa-check-circle" style="font-size: 2rem; color: var(--success-color);"></i><p style="margin-top: 1rem; color: var(--text-secondary);">Great! You have no absents.</p></div>';
+            bodyDiv.innerHTML = `
+                <div class="absent-empty-state">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <p>Great! You have no absents recorded.</p>
+                </div>`;
             return;
         }
 
-        let html = `<div style="margin-bottom: 15px; font-size: 1.1em;"><strong>Total Absents: <span class="text-danger">${data.total_absents}</span></strong></div>`;
+        let html = `
+            <div class="total-absents-badge">
+                <i class="fa-solid fa-calendar-xmark"></i>
+                <span>Total Absents: ${data.total_absents}</span>
+            </div>`;
 
-        // Pre-sort the absents array
         const sortedAbsents = [...data.absents].sort((a, b) => {
             const d1 = new Date(a.date);
             const d2 = new Date(b.date);
@@ -1058,19 +1065,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (grouping === 'month' && data.monthwise_absents) {
-            html += '<div class="absent-months-grid" style="display: grid; gap: 15px;">';
+            html += '<div class="absent-grid">';
             
-            // Sort months
             let monthEntries = Object.entries(data.monthwise_absents);
             monthEntries.sort((a, b) => {
                 const d1 = new Date(a[0]);
                 const d2 = new Date(b[0]);
-                if (isNaN(d1) || isNaN(d2)) return 0; // Fallback if month parsing fails
+                if (isNaN(d1) || isNaN(d2)) return 0;
                 return sortOrder === 'asc' ? d1 - d2 : d2 - d1;
             });
 
             for (const [month, records] of monthEntries) {
-                // Sort records within month
                 const sortedRecords = [...records].sort((a, b) => {
                     const d1 = new Date(a.date);
                     const d2 = new Date(b.date);
@@ -1078,21 +1083,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 html += `
-                    <details class="month-card" style="background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                        <summary style="color: var(--accent-primary); font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 5px 0; outline: none;">
-                            <span style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" class="group-master-chk" style="transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);" onclick="event.stopPropagation(); const details = this.closest('details'); if(details) { const chks = details.querySelectorAll('.absent-chk'); chks.forEach(c => c.checked = this.checked); }" title="Select all in this month">
-                                <span><i class="fa-solid fa-chevron-down" style="font-size: 0.8em; margin-right: 8px;"></i> <i class="fa-regular fa-calendar"></i> ${month}</span>
+                    <details class="absent-group-card" ${monthEntries.length === 1 ? 'open' : ''}>
+                        <summary>
+                            <span class="group-label">
+                                <input type="checkbox" class="group-master-chk" onclick="event.stopPropagation(); const details = this.closest('details'); if(details) { const chks = details.querySelectorAll('.absent-chk'); chks.forEach(c => { c.checked = this.checked; c.closest('.absent-record')?.classList.toggle('selected', this.checked); }); setTimeout(updateProjection, 20); }" title="Select all in this month">
+                                <span><i class="fa-solid fa-chevron-down"></i> <i class="fa-regular fa-calendar"></i> ${month}</span>
                             </span>
-                            <span style="font-size: 0.8em; background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 12px; color: var(--text-secondary); font-weight: normal;">${sortedRecords.length} absents</span>
+                            <span class="badge">${sortedRecords.length} Classes</span>
                         </summary>
-                        <ul style="list-style-type: none; padding-left: 0; margin: 12px 0 0 0; display: flex; flex-direction: column; gap: 8px;">
+                        <ul>
                             ${sortedRecords.map((r, i) => `
-                                <li style="font-size: 0.9em; padding: 8px 12px; border-left: 3px solid var(--danger-color); background: rgba(0,0,0,0.2); border-radius: 0 4px 4px 0; display: flex; align-items: flex-start;">
-                                    <input type="checkbox" class="absent-chk" value="${r.date}|${r.subject}|${r.lecture}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
-                                    <div>
-                                        <div style="font-weight: 600; color: var(--text-primary);">${r.date}</div>
-                                        <div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 2px;">${r.subject} <span style="opacity: 0.7;">(${r.lecture})</span></div>
+                                <li class="absent-record">
+                                    <input type="checkbox" class="absent-chk" value="${r.date}|${r.subject}|${r.lecture}">
+                                    <div class="absent-info">
+                                        <div class="date">${r.date}</div>
+                                        <div class="subject">${r.subject} <span class="lecture-info">(${r.lecture})</span></div>
                                     </div>
                                 </li>
                             `).join('')}
@@ -1102,7 +1107,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             html += '</div>';
         } else if (grouping === 'day') {
-            // Group by exact date using pre-sorted array
             const daywise = {};
             const dayOrder = [];
             sortedAbsents.forEach(r => {
@@ -1121,20 +1125,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 .replace(/'/g, '&#39;');
             const escapeAttribute = (value) => escapeHtml(value);
 
-            html += '<div class="absent-days-grid" style="display: grid; gap: 15px;">';
+            html += '<div class="absent-grid">';
             dayOrder.forEach((date, dayIndex) => {
                 const records = daywise[date];
                 const safeDate = escapeHtml(date);
                 html += `
-                    <details class="day-card" style="background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                        <summary style="color: var(--accent-primary); font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 5px 0; outline: none;">
-                            <span style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" class="group-master-chk" style="transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);" onclick="event.stopPropagation(); const details = this.closest('details'); if(details) { const chks = details.querySelectorAll('.absent-chk'); chks.forEach(c => c.checked = this.checked); }" title="Select all on this date">
-                                <span><i class="fa-solid fa-chevron-down" style="font-size: 0.8em; margin-right: 8px;"></i> <i class="fa-regular fa-calendar-days"></i> ${safeDate}</span>
+                    <details class="absent-group-card" ${dayOrder.length === 1 || dayIndex === 0 ? 'open' : ''}>
+                        <summary>
+                            <span class="group-label">
+                                <input type="checkbox" class="group-master-chk" onclick="event.stopPropagation(); const details = this.closest('details'); if(details) { const chks = details.querySelectorAll('.absent-chk'); chks.forEach(c => { c.checked = this.checked; c.closest('.absent-record')?.classList.toggle('selected', this.checked); }); setTimeout(updateProjection, 20); }" title="Select all on this date">
+                                <span><i class="fa-solid fa-chevron-down"></i> <i class="fa-regular fa-calendar-days"></i> ${safeDate}</span>
                             </span>
-                            <span style="font-size: 0.8em; background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 12px; color: var(--text-secondary); font-weight: normal;">${records.length} classes missed</span>
+                            <span class="badge">${records.length} Classes Missed</span>
                         </summary>
-                        <ul style="list-style-type: none; padding-left: 0; margin: 12px 0 0 0; display: flex; flex-direction: column; gap: 8px;">
+                        <ul>
                             ${records.map((r, i) => {
                                 const safeRecordDate = escapeAttribute(r.date);
                                 const safeSubjectAttr = escapeAttribute(r.subject);
@@ -1142,11 +1146,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const safeSubjectText = escapeHtml(r.subject);
                                 const safeLectureText = escapeHtml(r.lecture);
                                 return `
-                                <li style="font-size: 0.9em; padding: 8px 12px; border-left: 3px solid var(--danger-color); background: rgba(0,0,0,0.2); border-radius: 0 4px 4px 0; display: flex; align-items: flex-start;">
-                                    <input type="checkbox" class="absent-chk" value="${dayIndex}-${i}" data-date="${safeRecordDate}" data-subject="${safeSubjectAttr}" data-lecture="${safeLectureAttr}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
-                                    <div>
-                                        <div style="color: var(--text-primary); font-weight: 500;">${safeSubjectText}</div>
-                                        <div style="opacity: 0.7; font-size: 0.85em; margin-top: 2px;"><i class="fa-solid fa-chalkboard-user" style="margin-right: 4px;"></i>${safeLectureText}</div>
+                                <li class="absent-record">
+                                    <input type="checkbox" class="absent-chk" value="${safeRecordDate}|${safeSubjectAttr}|${safeLectureAttr}">
+                                    <div class="absent-info">
+                                        <div class="date">${safeSubjectText}</div>
+                                        <div class="subject"><i class="fa-solid fa-chalkboard-user"></i> ${safeLectureText}</div>
                                     </div>
                                 </li>
                             `;
@@ -1157,16 +1161,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             html += '</div>';
         } else {
-            // Flat list
-            html += '<ul style="list-style-type: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">';
+            html += '<ul class="absent-grid">';
             sortedAbsents.forEach((r, i) => {
                 html += `
-                    <li style="font-size: 0.95em; padding: 12px; background: rgba(0,0,0,0.2); border-left: 3px solid var(--danger-color); border-radius: 4px; display: flex; align-items: flex-start;">
-                        <input type="checkbox" class="absent-chk" value="${r.date}|${r.subject}|${r.lecture}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
-                        <div>
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;"><i class="fa-regular fa-calendar-xmark" style="color: var(--danger-color); margin-right: 6px;"></i>${r.date}</div>
-                            <div style="color: var(--text-secondary);">${r.subject}</div>
-                            <div style="opacity: 0.7; font-size: 0.85em; margin-top: 4px;"><i class="fa-solid fa-chalkboard-user" style="margin-right: 4px;"></i>${r.lecture}</div>
+                    <li class="absent-record">
+                        <input type="checkbox" class="absent-chk" value="${r.date}|${r.subject}|${r.lecture}">
+                        <div class="absent-info">
+                            <div class="date"><i class="fa-regular fa-calendar-xmark"></i> ${r.date}</div>
+                            <div class="subject">${r.subject} <span class="lecture-info">(${r.lecture})</span></div>
                         </div>
                     </li>
                 `;
@@ -1187,9 +1189,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const absentDatesContent = document.getElementById('absent-dates-content');
     if (absentDatesContent) {
         absentDatesContent.addEventListener('change', (e) => {
-            if (e.target.classList.contains('absent-chk') || e.target.classList.contains('group-master-chk')) {
-                // Short timeout to allow master checkbox inline handler to toggle children
-                setTimeout(updateProjection, 10);
+            if (e.target.classList.contains('absent-chk')) {
+                // Toggle selected class on the record container
+                e.target.closest('.absent-record')?.classList.toggle('selected', e.target.checked);
+                updateProjection();
+            } else if (e.target.classList.contains('group-master-chk')) {
+                // Master checkbox handling is done via inline onclick for now to ensure timing,
+                // but we trigger projection update here as well if needed.
+                setTimeout(updateProjection, 50);
             }
         });
     }

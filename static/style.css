@@ -1794,6 +1794,293 @@ tr:last-child td {
     color: #dc2626;
 }
 
+/* ==============================
+   ABSENT DATES & APPLICATION STYLES
+   ============================== */
+
+.absent-dates-section {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+}
+
+.absent-content {
+    margin-top: 1.5rem;
+    background: rgba(15, 23, 42, 0.3) !important;
+    padding: 1.5rem !important;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.absent-dates-body {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.absent-dates-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.absent-dates-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.absent-dates-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.absent-dates-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.absent-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+/* Grouping Cards (Month/Day) */
+.absent-group-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--glass-border) !important;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.absent-group-card summary {
+    padding: 1rem 1.2rem !important;
+    color: var(--text-primary) !important;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    outline: none;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s ease;
+}
+
+.absent-group-card summary .group-label {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.absent-group-card summary i.fa-chevron-down {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.absent-group-card[open] summary i.fa-chevron-down {
+    transform: rotate(180deg);
+    color: var(--accent-primary);
+}
+
+.absent-group-card .badge {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.absent-group-card summary:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.absent-group-card ul {
+    list-style: none;
+    padding: 0.8rem !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* Individual Absent Record */
+.absent-record {
+    background: rgba(255, 255, 255, 0.02) !important;
+    padding: 0.8rem 1rem !important;
+    border-left: 3px solid var(--danger) !important;
+    border-radius: 6px !important;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.absent-record:hover {
+    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.absent-record.selected {
+    background: rgba(16, 185, 129, 0.05) !important;
+    border-left-color: var(--success) !important;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.absent-record:hover {
+    transform: translateX(4px);
+    background: rgba(15, 23, 42, 0.6) !important;
+}
+
+.absent-chk {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent-primary);
+}
+
+.absent-info .date {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.absent-info .subject {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 0.2rem;
+}
+
+/* Projection Card */
+.projection-card {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)) !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    padding: 1.2rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 1.5rem;
+}
+
+.projection-card h4 {
+    color: var(--success);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.projection-stats {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.95rem;
+}
+
+.projection-stats strong {
+    color: var(--success);
+    font-size: 1.1rem;
+}
+
+/* Application Generator Section */
+.app-gen-section {
+    border-top: 1px solid var(--glass-border);
+    padding-top: 1.5rem;
+}
+
+.app-gen-section h3 {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reason-textarea {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    outline: none;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.reason-textarea:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    background: rgba(15, 23, 42, 0.7);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    margin-bottom: 0.6rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.total-absents-badge {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.reason-textarea:focus {
+    border-color: var(--accent-primary);
+}
+
+/* Generated Letter Output */
+.letter-card {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 16px !important;
+    padding: 1.5rem !important;
+    margin-top: 2rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.letter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+}
+
+.letter-header h4 {
+    color: var(--success);
+    font-size: 1.1rem;
+}
+
+.letter-body {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1.5rem;
+    border-radius: 12px;
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 /* Utility */
 .hidden {
     display: none !important;
@@ -1802,4 +2089,48 @@ tr:last-child td {
 .btn-sm {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+}
+
+.lecture-info {
+    opacity: 0.7;
+    font-size: 0.8rem;
+}
+
+.text-danger {
+    color: var(--danger) !important;
+}
+
+.absent-dates-section i.fa-file-signature,
+.app-gen-section i.fa-pen-nib {
+    color: var(--accent-primary);
+}
+
+.absent-group-card summary span i.fa-regular {
+    color: var(--accent-primary);
+}
+
+.absent-record i {
+    width: 16px;
+    text-align: center;
+}
+
+.absent-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    border: 1px dashed var(--glass-border);
+    margin: 1rem 0;
+}
+
+.absent-empty-state i {
+    font-size: 3rem;
+    color: var(--success);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.absent-empty-state p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
 }
