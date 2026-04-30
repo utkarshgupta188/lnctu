@@ -103,8 +103,8 @@ Fetch all absent records sorted chronologically, including raw flat lists and a 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/jadhavJester/lnct-u-better-acc.git
-cd lnct-u-better-acc
+git clone https://github.com/jadhavJester/lnctu.git
+cd lnctu
 ```
 
 2. Install dependencies:
