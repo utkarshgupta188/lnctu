@@ -326,6 +326,80 @@ def attendance_lite(username: str = "", password: str = ""):
 
 
 # ==============================
+# ABSENT DATES ENDPOINT
+# ==============================
+
+@app.get("/absent-dates")
+def get_absent_dates(username: str = "", password: str = ""):
+    """
+    Returns all the dates where the student was absent.
+    Includes both a flat list and a month-wise grouped dictionary.
+    """
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Username and password are required")
+
+    cleanup_expired_sessions()
+    data, msg = _get_or_create_session(username, password)
+    
+    if not data or 'datewise' not in data:
+        raise HTTPException(status_code=500, detail="Failed to fetch datewise attendance data")
+        
+    datewise = data.get('datewise', [])
+    absents = []
+    
+    for record in datewise:
+        # Assuming status is 'Absent' or similar. Sometimes it is 'A' or 'Absent'
+        status = record.get('status', '').lower()
+        if 'absent' in status or status == 'a':
+            absents.append(record)
+            
+    # Group by month
+    grouped_by_month = {}
+    for record in absents:
+        date_str = record.get('date', '')
+        month_key = "Unknown"
+        
+        # Try to parse date string to get month and year
+        # Common formats: DD-MMM-YYYY, DD/MM/YYYY, DD MMM YYYY
+        try:
+            parsed_date = None
+            for fmt in ("%d-%b-%Y", "%d/%m/%Y", "%d %b %Y", "%d-%m-%Y", "%d-%m-%y"):
+                try:
+                    parsed_date = datetime.strptime(date_str, fmt)
+                    break
+                except ValueError:
+                    continue
+            
+            if parsed_date:
+                month_key = parsed_date.strftime("%B %Y") # e.g. "April 2024"
+            else:
+                # Fallback to simple string splitting if format is unknown
+                if '-' in date_str:
+                    parts = date_str.split('-')
+                    if len(parts) >= 2:
+                        month_key = f"{parts[1]}-{parts[2]}" if len(parts) == 3 else "-".join(parts[1:])
+                elif '/' in date_str:
+                    parts = date_str.split('/')
+                    if len(parts) >= 2:
+                        month_key = f"{parts[1]}/{parts[2]}" if len(parts) == 3 else "/".join(parts[1:])
+        except Exception:
+            pass
+            
+        if month_key not in grouped_by_month:
+            grouped_by_month[month_key] = []
+        grouped_by_month[month_key].append(record)
+
+    return {
+        "success": True,
+        "data": {
+            "total_absents": len(absents),
+            "absents": absents,
+            "monthwise_absents": grouped_by_month
+        }
+    }
+
+
+# ==============================
 # TIMETABLE DATA ENDPOINT
 # ==============================
 
