@@ -17,6 +17,13 @@ A FastAPI-based web application that scrapes and displays attendance data from t
   - Example: "You can bunk 15 classes (2 days + 1 class) and still maintain 75%"
 - **Real-time Calculation** - Set your target percentage and get instant predictions
 
+### 📝 Absent Dates & Application Auto-Generator
+- **Detailed Absence Tracking** - View all your missed classes in a flat list or grouped dynamically by Day or Month.
+- **Sorting & Grouping** - Sort absences by Newest/Oldest and collapse/expand date groups instantly.
+- **Smart Application Generation** - Select specific missed classes and instantly generate a formatted formal application letter directed to your HOD.
+- **Real-time Projections** - Select missed classes and see exactly how your attendance percentage will jump if the application is approved.
+- **One-Click Copy** - Copy the beautifully generated letter to your clipboard with a single click.
+
 ### 🔐 Security
 - Session management with automatic cleanup
 - Secure credential handling
@@ -59,6 +66,29 @@ Fetch complete attendance data including overall, subject-wise, and date-wise at
         "status": "P"
       }
     ]
+  }
+}
+```
+
+### `GET /absent-dates?username=ID&password=PASS`
+Fetch all absent records sorted chronologically, including raw flat lists and a pre-grouped month-wise structure.
+
+**Response Example:**
+```json
+{
+  "success": true,
+  "data": {
+    "total_absents": 5,
+    "absents": [
+      {
+        "date": "18 Apr 2024",
+        "lecture": "Lecture No-1",
+        "subject": "Compiler Design"
+      }
+    ],
+    "monthwise_absents": {
+      "April 2024": [ ... ]
+    }
   }
 }
 ```

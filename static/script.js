@@ -980,4 +980,328 @@ document.addEventListener('DOMContentLoaded', () => {
             default: return 'fa-question-circle';
         }
     }
+
+    // ==============================
+    // ABSENT DATES FOR APPLICATION
+    // ==============================
+    const fetchAbsentsBtn = document.getElementById('fetch-absents-btn');
+    if (fetchAbsentsBtn) {
+        fetchAbsentsBtn.addEventListener('click', async (e) => {
+            if (!currentUsername || !currentPassword) return;
+
+            const btn = e.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Fetching...';
+            btn.disabled = true;
+
+            const contentDiv = document.getElementById('absent-dates-content');
+            const bodyDiv = document.getElementById('absent-dates-body');
+            contentDiv.classList.remove('hidden');
+            bodyDiv.innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--accent-primary);"></i><p style="margin-top: 1rem; color: var(--text-secondary);">Loading absent dates...</p></div>';
+
+            try {
+                const response = await fetch(`/absent-dates?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const grouping = document.getElementById('grouping-select') ? document.getElementById('grouping-select').value : 'day';
+                    const sortOrder = document.getElementById('sort-order-select') ? document.getElementById('sort-order-select').value : 'desc';
+                    renderAbsentDates(result.data, grouping, sortOrder);
+                } else {
+                    bodyDiv.innerHTML = '<p style="color: var(--danger-color); text-align: center;">Failed to load absent dates.</p>';
+                }
+            } catch (err) {
+                console.error('Failed to fetch absent dates:', err);
+                bodyDiv.innerHTML = '<p style="color: var(--danger-color); text-align: center;">Network error occurred.</p>';
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    const groupingSelect = document.getElementById('grouping-select');
+    if (groupingSelect) {
+        groupingSelect.addEventListener('change', () => {
+            const btn = document.getElementById('fetch-absents-btn');
+            if (!document.getElementById('absent-dates-content').classList.contains('hidden')) {
+                btn.click(); // Simple re-fetch or re-render
+            }
+        });
+    }
+
+    const sortOrderSelect = document.getElementById('sort-order-select');
+    if (sortOrderSelect) {
+        sortOrderSelect.addEventListener('change', () => {
+            const btn = document.getElementById('fetch-absents-btn');
+            if (!document.getElementById('absent-dates-content').classList.contains('hidden')) {
+                btn.click();
+            }
+        });
+    }
+
+    function renderAbsentDates(data, grouping, sortOrder) {
+        const bodyDiv = document.getElementById('absent-dates-body');
+        
+        if (!data || data.total_absents === 0) {
+            bodyDiv.innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fa-solid fa-check-circle" style="font-size: 2rem; color: var(--success-color);"></i><p style="margin-top: 1rem; color: var(--text-secondary);">Great! You have no absents.</p></div>';
+            return;
+        }
+
+        let html = `<div style="margin-bottom: 15px; font-size: 1.1em;"><strong>Total Absents: <span class="text-danger">${data.total_absents}</span></strong></div>`;
+
+        // Pre-sort the absents array
+        const sortedAbsents = [...data.absents].sort((a, b) => {
+            const d1 = new Date(a.date);
+            const d2 = new Date(b.date);
+            return sortOrder === 'asc' ? d1 - d2 : d2 - d1;
+        });
+
+        if (grouping === 'month' && data.monthwise_absents) {
+            html += '<div class="absent-months-grid" style="display: grid; gap: 15px;">';
+            
+            // Sort months
+            let monthEntries = Object.entries(data.monthwise_absents);
+            monthEntries.sort((a, b) => {
+                const d1 = new Date(a[0]);
+                const d2 = new Date(b[0]);
+                if (isNaN(d1) || isNaN(d2)) return 0; // Fallback if month parsing fails
+                return sortOrder === 'asc' ? d1 - d2 : d2 - d1;
+            });
+
+            for (const [month, records] of monthEntries) {
+                // Sort records within month
+                const sortedRecords = [...records].sort((a, b) => {
+                    const d1 = new Date(a.date);
+                    const d2 = new Date(b.date);
+                    return sortOrder === 'asc' ? d1 - d2 : d2 - d1;
+                });
+
+                html += `
+                    <details class="month-card" style="background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <summary style="color: var(--accent-primary); font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 5px 0; outline: none;">
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" class="group-master-chk" style="transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);" onclick="event.stopPropagation(); const details = this.closest('details'); if(details) { const chks = details.querySelectorAll('.absent-chk'); chks.forEach(c => c.checked = this.checked); }" title="Select all in this month">
+                                <span><i class="fa-solid fa-chevron-down" style="font-size: 0.8em; margin-right: 8px;"></i> <i class="fa-regular fa-calendar"></i> ${month}</span>
+                            </span>
+                            <span style="font-size: 0.8em; background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 12px; color: var(--text-secondary); font-weight: normal;">${sortedRecords.length} absents</span>
+                        </summary>
+                        <ul style="list-style-type: none; padding-left: 0; margin: 12px 0 0 0; display: flex; flex-direction: column; gap: 8px;">
+                            ${sortedRecords.map((r, i) => `
+                                <li style="font-size: 0.9em; padding: 8px 12px; border-left: 3px solid var(--danger-color); background: rgba(0,0,0,0.2); border-radius: 0 4px 4px 0; display: flex; align-items: flex-start;">
+                                    <input type="checkbox" class="absent-chk" value="${r.date}|${r.subject}|${r.lecture}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">${r.date}</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.9em; margin-top: 2px;">${r.subject} <span style="opacity: 0.7;">(${r.lecture})</span></div>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </details>
+                `;
+            }
+            html += '</div>';
+        } else if (grouping === 'day') {
+            // Group by exact date using pre-sorted array
+            const daywise = {};
+            const dayOrder = [];
+            sortedAbsents.forEach(r => {
+                if (!daywise[r.date]) {
+                    daywise[r.date] = [];
+                    dayOrder.push(r.date);
+                }
+                daywise[r.date].push(r);
+            });
+            
+            const escapeHtml = (value) => String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const escapeAttribute = (value) => escapeHtml(value);
+
+            html += '<div class="absent-days-grid" style="display: grid; gap: 15px;">';
+            dayOrder.forEach((date, dayIndex) => {
+                const records = daywise[date];
+                const safeDate = escapeHtml(date);
+                html += `
+                    <details class="day-card" style="background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <summary style="color: var(--accent-primary); font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 5px 0; outline: none;">
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" class="group-master-chk" style="transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);" onclick="event.stopPropagation(); const details = this.closest('details'); if(details) { const chks = details.querySelectorAll('.absent-chk'); chks.forEach(c => c.checked = this.checked); }" title="Select all on this date">
+                                <span><i class="fa-solid fa-chevron-down" style="font-size: 0.8em; margin-right: 8px;"></i> <i class="fa-regular fa-calendar-days"></i> ${safeDate}</span>
+                            </span>
+                            <span style="font-size: 0.8em; background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 12px; color: var(--text-secondary); font-weight: normal;">${records.length} classes missed</span>
+                        </summary>
+                        <ul style="list-style-type: none; padding-left: 0; margin: 12px 0 0 0; display: flex; flex-direction: column; gap: 8px;">
+                            ${records.map((r, i) => {
+                                const safeRecordDate = escapeAttribute(r.date);
+                                const safeSubjectAttr = escapeAttribute(r.subject);
+                                const safeLectureAttr = escapeAttribute(r.lecture);
+                                const safeSubjectText = escapeHtml(r.subject);
+                                const safeLectureText = escapeHtml(r.lecture);
+                                return `
+                                <li style="font-size: 0.9em; padding: 8px 12px; border-left: 3px solid var(--danger-color); background: rgba(0,0,0,0.2); border-radius: 0 4px 4px 0; display: flex; align-items: flex-start;">
+                                    <input type="checkbox" class="absent-chk" value="${dayIndex}-${i}" data-date="${safeRecordDate}" data-subject="${safeSubjectAttr}" data-lecture="${safeLectureAttr}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
+                                    <div>
+                                        <div style="color: var(--text-primary); font-weight: 500;">${safeSubjectText}</div>
+                                        <div style="opacity: 0.7; font-size: 0.85em; margin-top: 2px;"><i class="fa-solid fa-chalkboard-user" style="margin-right: 4px;"></i>${safeLectureText}</div>
+                                    </div>
+                                </li>
+                            `;
+                            }).join('')}
+                        </ul>
+                    </details>
+                `;
+            });
+            html += '</div>';
+        } else {
+            // Flat list
+            html += '<ul style="list-style-type: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">';
+            sortedAbsents.forEach((r, i) => {
+                html += `
+                    <li style="font-size: 0.95em; padding: 12px; background: rgba(0,0,0,0.2); border-left: 3px solid var(--danger-color); border-radius: 4px; display: flex; align-items: flex-start;">
+                        <input type="checkbox" class="absent-chk" value="${r.date}|${r.subject}|${r.lecture}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;"><i class="fa-regular fa-calendar-xmark" style="color: var(--danger-color); margin-right: 6px;"></i>${r.date}</div>
+                            <div style="color: var(--text-secondary);">${r.subject}</div>
+                            <div style="opacity: 0.7; font-size: 0.85em; margin-top: 4px;"><i class="fa-solid fa-chalkboard-user" style="margin-right: 4px;"></i>${r.lecture}</div>
+                        </div>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+        }
+
+        bodyDiv.innerHTML = html;
+        
+        // Reset output section
+        const outputSection = document.getElementById('generated-app-output-section');
+        if (outputSection) outputSection.classList.add('hidden');
+        const projBox = document.getElementById('attendance-projection-box');
+        if (projBox) projBox.classList.add('hidden');
+    }
+
+    // Application Generator & Projection Logic
+    const absentDatesContent = document.getElementById('absent-dates-content');
+    if (absentDatesContent) {
+        absentDatesContent.addEventListener('change', (e) => {
+            if (e.target.classList.contains('absent-chk') || e.target.classList.contains('group-master-chk')) {
+                // Short timeout to allow master checkbox inline handler to toggle children
+                setTimeout(updateProjection, 10);
+            }
+        });
+    }
+
+    function updateProjection() {
+        if (!currentData || !currentData.attendance || currentData.attendance.length === 0) return;
+        
+        let totalClasses = 0;
+        let presentClasses = 0;
+        currentData.attendance.forEach(sub => {
+            totalClasses += sub.total;
+            presentClasses += sub.present;
+        });
+
+        const checkedBoxes = document.querySelectorAll('.absent-chk:checked');
+        const recoveredClasses = checkedBoxes.length;
+        const projectionBox = document.getElementById('attendance-projection-box');
+
+        if (recoveredClasses > 0) {
+            const newPresent = presentClasses + recoveredClasses;
+            const newPercentage = totalClasses > 0 ? ((newPresent / totalClasses) * 100).toFixed(2) : 0;
+            document.getElementById('proj-recovered').textContent = recoveredClasses;
+            document.getElementById('proj-percentage').textContent = `${newPercentage}%`;
+            projectionBox.classList.remove('hidden');
+        } else {
+            projectionBox.classList.add('hidden');
+        }
+    }
+
+    const generateAppBtn = document.getElementById('generate-app-btn');
+    if (generateAppBtn) {
+        generateAppBtn.addEventListener('click', () => {
+            const checkboxes = document.querySelectorAll('.absent-chk:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one missed class to include in your application.');
+                return;
+            }
+
+            const reason = document.getElementById('app-reason-input').value.trim() || '[Please specify reason]';
+            const studentName = currentData?.student_name || '[Your Name]';
+            const enrollmentId = currentUsername || '[Your Enrollment ID]';
+            
+            // Group selected classes by date
+            const selectedDates = {};
+            checkboxes.forEach(chk => {
+                const parts = chk.value.split('|');
+                const date = parts[0];
+                const subject = parts[1];
+                if (!selectedDates[date]) selectedDates[date] = [];
+                selectedDates[date].push(subject);
+            });
+
+            // Format dates list
+            let datesListStr = '';
+            for (const [date, subjects] of Object.entries(selectedDates)) {
+                datesListStr += `  - ${date}: ${subjects.join(', ')}\n`;
+            }
+
+            // Get current date
+            const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            const template = `To,
+The Head of Department
+LNCT University
+Bhopal, M.P.
+
+Date: ${today}
+
+Subject: Application for Attendance
+
+Respected Sir/Madam,
+
+I am writing to respectfully request attendance for the classes I was unable to attend. I am a student of your department bearing Enrollment Number: ${enrollmentId}.
+
+I missed the following classes:
+${datesListStr}
+The reason for my absence is: ${reason}. 
+
+I have now caught up with the missed coursework and request you to kindly grant me attendance for these missed classes so it does not negatively impact my academic record.
+
+I have attached the relevant documents (if applicable) for your reference.
+
+Thank you for your understanding and consideration.
+
+Yours faithfully,
+${studentName}
+Enrollment No: ${enrollmentId}`;
+
+            const outputSection = document.getElementById('generated-app-output-section');
+            const outputText = document.getElementById('generated-app-text');
+            
+            outputText.textContent = template;
+            outputSection.classList.remove('hidden');
+        });
+    }
+
+    const copyAppBtn = document.getElementById('copy-app-btn');
+    if (copyAppBtn) {
+        copyAppBtn.addEventListener('click', () => {
+            const textToCopy = document.getElementById('generated-app-text').textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalHTML = copyAppBtn.innerHTML;
+                copyAppBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                copyAppBtn.style.backgroundColor = 'var(--success-color)';
+                setTimeout(() => {
+                    copyAppBtn.innerHTML = originalHTML;
+                    copyAppBtn.style.backgroundColor = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy text to clipboard.');
+            });
+        });
+    }
 });

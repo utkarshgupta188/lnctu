@@ -247,6 +247,61 @@
                     </div>
                 </div>
 
+                <!-- Absent Dates for Application Section -->
+                <div class="absent-dates-section" style="margin-top: 30px;">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-file-signature"></i> Absent Dates (For Application)</h2>
+                        <div class="simulator-controls" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <select id="sort-order-select" style="padding: 8px 12px; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); outline: none; font-family: inherit; font-size: 0.9em; cursor: pointer;">
+                                <option value="desc" style="background: #1e293b; color: #ffffff;">Newest First (Desc)</option>
+                                <option value="asc" style="background: #1e293b; color: #ffffff;">Oldest First (Asc)</option>
+                            </select>
+                            <select id="grouping-select" style="padding: 8px 12px; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); outline: none; font-family: inherit; font-size: 0.9em; cursor: pointer;">
+                                <option value="flat" style="background: #1e293b; color: #ffffff;">Flat List</option>
+                                <option value="day" selected style="background: #1e293b; color: #ffffff;">Group Day-wise</option>
+                                <option value="month" style="background: #1e293b; color: #ffffff;">Group Month-wise</option>
+                            </select>
+                            <button id="fetch-absents-btn" class="btn-secondary">Show Absents</button>
+                        </div>
+                    </div>
+                    <div id="absent-dates-content" class="absent-content hidden" style="margin-top: 15px; background: var(--bg-secondary); padding: 20px; border-radius: 12px; border: 1px solid var(--border-light);">
+                        <div id="absent-dates-body" style="max-height: 350px; overflow-y: auto; padding-right: 10px; margin-bottom: 15px;">
+                            <!-- Injected by JS -->
+                        </div>
+                        
+                        <!-- Application Generator Form -->
+                        <div id="application-generator-section" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-pen-nib"></i> Write Application</h3>
+                            <p style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 15px;">Check the boxes next to the classes above that you want to include in your application.</p>
+                            
+                            <div id="attendance-projection-box" class="hidden" style="margin-bottom: 15px; padding: 15px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px;">
+                                <h4 style="color: var(--success-color); margin: 0 0 8px 0; font-size: 0.95em;"><i class="fa-solid fa-arrow-trend-up"></i> Projected Attendance</h4>
+                                <div style="display: flex; gap: 20px; font-size: 0.9em; color: var(--text-primary);">
+                                    <div>Classes Recovered: <strong id="proj-recovered" style="color: var(--success-color);">0</strong></div>
+                                    <div>New Percentage: <strong id="proj-percentage" style="color: var(--success-color);">0%</strong></div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 0.9em;">Reason for Absence</label>
+                                    <textarea id="app-reason-input" rows="3" placeholder="e.g. I was suffering from fever..." style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); outline: none; font-family: inherit; resize: vertical;"></textarea>
+                                </div>
+                                <button id="generate-app-btn" class="btn-primary" style="align-self: flex-start;">Generate Application</button>
+                            </div>
+                            
+                            <!-- Generated Output -->
+                            <div id="generated-app-output-section" class="hidden" style="margin-top: 20px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--border-light);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h4 style="color: var(--success-color); margin: 0;">Generated Letter</h4>
+                                    <button id="copy-app-btn" class="btn-secondary btn-sm"><i class="fa-regular fa-copy"></i> Copy</button>
+                                </div>
+                                <pre id="generated-app-text" style="white-space: pre-wrap; font-family: inherit; font-size: 0.9em; line-height: 1.5; color: var(--text-primary); margin: 0; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 4px;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </section>
 
