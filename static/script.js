@@ -1113,32 +1113,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 daywise[r.date].push(r);
             });
             
+            const escapeHtml = (value) => String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const escapeAttribute = (value) => escapeHtml(value);
+
             html += '<div class="absent-days-grid" style="display: grid; gap: 15px;">';
-            for (const date of dayOrder) {
+            dayOrder.forEach((date, dayIndex) => {
                 const records = daywise[date];
+                const safeDate = escapeHtml(date);
                 html += `
                     <details class="day-card" style="background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
                         <summary style="color: var(--accent-primary); font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 5px 0; outline: none;">
                             <span style="display: flex; align-items: center; gap: 10px;">
                                 <input type="checkbox" class="group-master-chk" style="transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);" onclick="event.stopPropagation(); const details = this.closest('details'); if(details) { const chks = details.querySelectorAll('.absent-chk'); chks.forEach(c => c.checked = this.checked); }" title="Select all on this date">
-                                <span><i class="fa-solid fa-chevron-down" style="font-size: 0.8em; margin-right: 8px;"></i> <i class="fa-regular fa-calendar-days"></i> ${date}</span>
+                                <span><i class="fa-solid fa-chevron-down" style="font-size: 0.8em; margin-right: 8px;"></i> <i class="fa-regular fa-calendar-days"></i> ${safeDate}</span>
                             </span>
                             <span style="font-size: 0.8em; background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 12px; color: var(--text-secondary); font-weight: normal;">${records.length} classes missed</span>
                         </summary>
                         <ul style="list-style-type: none; padding-left: 0; margin: 12px 0 0 0; display: flex; flex-direction: column; gap: 8px;">
-                            ${records.map((r, i) => `
+                            ${records.map((r, i) => {
+                                const safeRecordDate = escapeAttribute(r.date);
+                                const safeSubjectAttr = escapeAttribute(r.subject);
+                                const safeLectureAttr = escapeAttribute(r.lecture);
+                                const safeSubjectText = escapeHtml(r.subject);
+                                const safeLectureText = escapeHtml(r.lecture);
+                                return `
                                 <li style="font-size: 0.9em; padding: 8px 12px; border-left: 3px solid var(--danger-color); background: rgba(0,0,0,0.2); border-radius: 0 4px 4px 0; display: flex; align-items: flex-start;">
-                                    <input type="checkbox" class="absent-chk" value="${r.date}|${r.subject}|${r.lecture}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
+                                    <input type="checkbox" class="absent-chk" value="${dayIndex}-${i}" data-date="${safeRecordDate}" data-subject="${safeSubjectAttr}" data-lecture="${safeLectureAttr}" style="margin-right: 12px; margin-top: 4px; transform: scale(1.2); cursor: pointer; accent-color: var(--accent-primary);">
                                     <div>
-                                        <div style="color: var(--text-primary); font-weight: 500;">${r.subject}</div>
-                                        <div style="opacity: 0.7; font-size: 0.85em; margin-top: 2px;"><i class="fa-solid fa-chalkboard-user" style="margin-right: 4px;"></i>${r.lecture}</div>
+                                        <div style="color: var(--text-primary); font-weight: 500;">${safeSubjectText}</div>
+                                        <div style="opacity: 0.7; font-size: 0.85em; margin-top: 2px;"><i class="fa-solid fa-chalkboard-user" style="margin-right: 4px;"></i>${safeLectureText}</div>
                                     </div>
                                 </li>
-                            `).join('')}
+                            `;
+                            }).join('')}
                         </ul>
                     </details>
                 `;
-            }
+            });
             html += '</div>';
         } else {
             // Flat list
