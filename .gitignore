@@ -22,3 +22,8 @@ debug.log
 .DS_Store
 Thumbs.db
 .qoder
+node_modules/
+Project_Report.docx
+generate_report.js
+~$*
+
