@@ -103,7 +103,7 @@ Fetch all absent records sorted chronologically, including raw flat lists and a 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/jadhavJester/lnctu.git
+git clone https://github.com/utkarshgupta188/lnctu.git
 cd lnctu
 ```
 
