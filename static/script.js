@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('overall-percentage').textContent = data.percentage + '%';
 
         // Render Chart
-        renderChart(data.present, data.absent);
+        renderTrendChart(data.datewise);
 
         // Render Date Wise Table
         renderDateWiseTable(data.datewise);
@@ -276,30 +276,111 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'badge-danger';
     }
 
-    function renderChart(present, absent) {
-        const ctx = document.getElementById('attendanceDonut').getContext('2d');
+    function renderTrendChart(datewise) {
+        const canvas = document.getElementById('attendanceTrend');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
 
         if (attendanceChart) {
             attendanceChart.destroy();
         }
 
+        if (!datewise || datewise.length === 0) return;
+
+        // 1. Sort datewise by date ascending for trend
+        const parseDate = (dateStr) => {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                // Assuming DD/MM/YYYY
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            return new Date(dateStr);
+        };
+
+        const sortedData = [...datewise].sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+        // 2. Calculate cumulative percentage
+        const dailyStats = {};
+        let runningPresent = 0;
+        let runningTotal = 0;
+
+        sortedData.forEach(record => {
+            runningTotal++;
+            if (record.status.toUpperCase() === 'P' || record.status.toUpperCase() === 'PRESENT') {
+                runningPresent++;
+            }
+            // Group by date to get daily closing percentage
+            dailyStats[record.date] = (runningPresent / runningTotal) * 100;
+        });
+
+        const labels = Object.keys(dailyStats);
+        const dataPoints = Object.values(dailyStats);
+
         attendanceChart = new Chart(ctx, {
-            type: 'doughnut',
+            type: 'line',
             data: {
-                labels: ['Present', 'Absent'],
+                labels: labels,
                 datasets: [{
-                    data: [present, absent],
-                    backgroundColor: ['#4ade80', '#f87171'],
-                    borderWidth: 0
+                    label: 'Overall %',
+                    data: dataPoints,
+                    borderColor: '#4ade80',
+                    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: labels.length > 20 ? 2 : 5, 
+                    pointBackgroundColor: '#4ade80',
+                    pointHoverRadius: 8,
+                    pointBorderWidth: 2,
+                    pointBorderColor: '#fff'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { color: '#fff' }
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return ` Attendance: ${context.parsed.y.toFixed(2)}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { size: 12 },
+                            callback: value => value + '%'
+                        },
+                        grid: { 
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { size: 11 },
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 7
+                        },
+                        grid: { display: false }
                     }
                 }
             }

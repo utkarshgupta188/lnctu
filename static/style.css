@@ -118,6 +118,7 @@ body {
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-secondary);
+    z-index: 2;
 }
 
 .input-group input,

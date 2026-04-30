@@ -29,7 +29,7 @@
                 <form id="login-form">
                     <div class="input-group">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" id="username" placeholder="Username / Enrollment ID" required>
+                        <input type="text" id="username" placeholder="Login ID (11111xxxxx)" required>
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
@@ -95,10 +95,10 @@
 
                 <!-- Charts Area -->
                 <div class="charts-container">
-                    <div class="chart-card donut-card">
-                        <h2>Overview</h2>
+                    <div class="chart-card trend-card">
+                        <h2>Attendance Trend</h2>
                         <div class="chart-wrapper">
-                            <canvas id="attendanceDonut"></canvas>
+                            <canvas id="attendanceTrend"></canvas>
                         </div>
                     </div>
                     <div class="chart-card prediction-card">
@@ -267,12 +267,13 @@
                         <div id="absent-dates-body" class="absent-dates-body">
                             <!-- Injected by JS -->
                         </div>
-                        
+
                         <!-- Application Generator Form -->
                         <div id="application-generator-section" class="app-gen-section">
                             <h3><i class="fa-solid fa-pen-nib"></i> Write Application</h3>
-                            <p style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 15px;">Check the boxes next to the classes above that you want to include in your application.</p>
-                            
+                            <p style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 15px;">Check the
+                                boxes next to the classes above that you want to include in your application.</p>
+
                             <div id="attendance-projection-box" class="projection-card hidden">
                                 <h4><i class="fa-solid fa-arrow-trend-up"></i> Projected Attendance</h4>
                                 <div class="projection-stats">
@@ -280,18 +281,22 @@
                                     <div>New Percentage: <strong id="proj-percentage">0%</strong></div>
                                 </div>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label class="form-label">Reason for Absence</label>
-                                <textarea id="app-reason-input" class="reason-textarea" rows="3" placeholder="e.g. I was suffering from fever..."></textarea>
-                                <button id="generate-app-btn" class="btn-primary" style="width: auto; align-self: flex-start; padding: 0.8rem 2rem;">Generate Application</button>
+                                <textarea id="app-reason-input" class="reason-textarea" rows="3"
+                                    placeholder="e.g. I was suffering from fever..."></textarea>
+                                <button id="generate-app-btn" class="btn-primary"
+                                    style="width: auto; align-self: flex-start; padding: 0.8rem 2rem;">Generate
+                                    Application</button>
                             </div>
-                            
+
                             <!-- Generated Output -->
                             <div id="generated-app-output-section" class="letter-card hidden">
                                 <div class="letter-header">
                                     <h4><i class="fa-solid fa-check-double"></i> Generated Letter</h4>
-                                    <button id="copy-app-btn" class="btn-secondary btn-sm"><i class="fa-regular fa-copy"></i> Copy Text</button>
+                                    <button id="copy-app-btn" class="btn-secondary btn-sm"><i
+                                            class="fa-regular fa-copy"></i> Copy Text</button>
                                 </div>
                                 <pre id="generated-app-text" class="letter-body"></pre>
                             </div>
