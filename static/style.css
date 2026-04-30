@@ -120,21 +120,64 @@ body {
     color: var(--text-secondary);
 }
 
-.input-group input {
+.input-group input,
+.prediction-ui input,
+.threshold-control input,
+.form-group input,
+.form-group textarea,
+.simulator-controls select {
     width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
-    background: rgba(15, 23, 42, 0.5);
+    padding: 0.8rem 1rem;
+    background: rgba(15, 23, 42, 0.4);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
     color: var(--text-primary);
     font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(4px);
+    appearance: none;
 }
 
-.input-group input:focus {
+.simulator-controls select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+.simulator-controls select option {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.input-group input {
+    padding-left: 3rem;
+}
+
+.input-group input:focus,
+.prediction-ui input:focus,
+.threshold-control input:focus,
+.form-group input:focus,
+.form-group textarea:focus,
+.simulator-controls select:focus {
     outline: none;
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    background: rgba(15, 23, 42, 0.6);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+/* Premium Disabled State - as requested by user's snippet */
+input:disabled, 
+textarea:disabled,
+.myboxD { /* Matching user's class */
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-secondary) !important;
+    cursor: not-allowed;
+    opacity: 0.8;
+    filter: grayscale(0.5);
 }
 
 .btn-primary {
@@ -2057,6 +2100,36 @@ tr:last-child td {
     animation: fadeIn 0.4s ease-out;
 }
 
+/* Header Welcome Tag */
+.welcome-tag {
+    margin-left: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    padding-left: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+}
+
+.student-name {
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.student-enrollment {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0.5px;
+}
+
+
 .letter-header {
     display: flex;
     justify-content: space-between;
@@ -2070,16 +2143,31 @@ tr:last-child td {
 }
 
 .letter-body {
-    background: rgba(255, 255, 255, 0.02);
-    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2rem;
     border-radius: 12px;
     white-space: pre-wrap;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.95rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
     line-height: 1.6;
     color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
 }
+
+.letter-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-primary);
+    opacity: 0.5;
+}
+
 
 /* Utility */
 .hidden {
@@ -2133,4 +2221,4 @@ tr:last-child td {
 .absent-empty-state p {
     color: var(--text-secondary);
     font-size: 1.1rem;
-}
+}

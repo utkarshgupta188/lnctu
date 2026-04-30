@@ -143,16 +143,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderDashboard(data) {
         // Update Welcome Message
+        const studentNameDisplay = document.getElementById('student-name-display');
+        const studentEnrollDisplay = document.getElementById('student-enroll-display');
         const welcomeMsg = document.getElementById('welcome-message');
-        const nameDisplay = document.getElementById('student-name-display');
-        if (data.student_name && data.student_name !== '') {
-            nameDisplay.textContent = data.student_name;
+        
+        if (data.student_name || (data.personal_details && data.personal_details.name)) {
+            const name = data.student_name || (data.personal_details && data.personal_details.name);
+            studentNameDisplay.textContent = name;
+            
+            if (data.personal_details && data.personal_details.enrollment_no) {
+                studentEnrollDisplay.textContent = data.personal_details.enrollment_no;
+                studentEnrollDisplay.style.display = 'inline-block';
+            } else {
+                studentEnrollDisplay.style.display = 'none';
+            }
+            
             welcomeMsg.classList.remove('hidden');
-            welcomeMsg.style.display = 'inline-block';
+            welcomeMsg.style.display = 'flex';
         } else {
             welcomeMsg.classList.add('hidden');
             welcomeMsg.style.display = 'none';
         }
+
 
         // Update Stats
         document.getElementById('total-classes').textContent = data.total_classes;
@@ -1237,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const reason = document.getElementById('app-reason-input').value.trim() || '[Please specify reason]';
             const studentName = currentData?.student_name || '[Your Name]';
-            const enrollmentId = currentUsername || '[Your Enrollment ID]';
+            const enrollmentId = currentData?.personal_details?.enrollment_no || currentUsername || '[Your Enrollment ID]';
             
             // Group selected classes by date
             const selectedDates = {};
@@ -1258,32 +1270,31 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get current date
             const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            const template = `To,
-The Head of Department
-LNCT University
-Bhopal, M.P.
+            const template = `TO,
+THE HEAD OF DEPARTMENT
+LNCT UNIVERSITY, BHOPAL (M.P.)
 
-Date: ${today}
+DATE: ${today}
 
-Subject: Application for Attendance
+SUBJECT: APPLICATION FOR GRANT OF ATTENDANCE
 
-Respected Sir/Madam,
+RESPECTED SIR/MADAM,
 
-I am writing to respectfully request attendance for the classes I was unable to attend. I am a student of your department bearing Enrollment Number: ${enrollmentId}.
+I AM WRITING TO RESPECTFULLY REQUEST ATTENDANCE FOR THE CLASSES I WAS UNABLE TO ATTEND. I AM A STUDENT OF YOUR DEPARTMENT BEARING ENROLLMENT NUMBER: ${enrollmentId}.
 
-I missed the following classes:
+I MISSED THE FOLLOWING CLASSES:
 ${datesListStr}
-The reason for my absence is: ${reason}. 
 
-I have now caught up with the missed coursework and request you to kindly grant me attendance for these missed classes so it does not negatively impact my academic record.
+THE REASON FOR MY ABSENCE IS: ${reason.toUpperCase()}. 
 
-I have attached the relevant documents (if applicable) for your reference.
+I HAVE NOW CAUGHT UP WITH THE MISSED COURSEWORK AND REQUEST YOU TO KINDLY GRANT ME ATTENDANCE FOR THESE MISSED CLASSES SO IT DOES NOT NEGATIVELY IMPACT MY ACADEMIC RECORD.
 
-Thank you for your understanding and consideration.
+THANK YOU FOR YOUR UNDERSTANDING AND CONSIDERATION.
 
-Yours faithfully,
-${studentName}
-Enrollment No: ${enrollmentId}`;
+YOURS FAITHFULLY,
+${studentName.toUpperCase()}
+ENROLLMENT NO: ${enrollmentId}`;
+
 
             const outputSection = document.getElementById('generated-app-output-section');
             const outputText = document.getElementById('generated-app-text');

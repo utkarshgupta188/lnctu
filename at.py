@@ -199,6 +199,27 @@ class LNCTAttendance:
             
         return datewise
 
+    def get_personal_details(self):
+        details = {"enrollment_no": "N/A"}
+        try:
+            url = f"{self.base_url}/AccSoft2/Parents/StudentPersonalDetails.aspx"
+            r = self.session.get(url, timeout=15)
+            soup = BeautifulSoup(r.content, 'html.parser')
+            
+            # ID for enrollment no: ctl00_ContentPlaceHolder1_txtUEnrollNo
+            el = soup.find('input', {'id': 'ctl00_ContentPlaceHolder1_txtUEnrollNo'})
+            if el:
+                details["enrollment_no"] = el.get('value', '').strip()
+            else:
+                el = soup.find(['span', 'label'], {'id': 'ctl00_ContentPlaceHolder1_txtUEnrollNo'})
+                if el:
+                    details["enrollment_no"] = el.text.strip()
+                        
+        except Exception as e:
+            logger.error(f"Error fetching enrollment no: {e}")
+            
+        return details
+
     def get_attendance(self):
         try:
             r = self.session.get(self.attendance_url, timeout=15)
@@ -227,6 +248,7 @@ class LNCTAttendance:
 
             subjects = self.get_subject_attendance()
             datewise = self.get_datewise_attendance(soup)
+            personal_details = self.get_personal_details()
 
             return {
                 **data,
@@ -234,7 +256,8 @@ class LNCTAttendance:
                 'overall_percentage': percentage,
                 'attended_classes': data['present'],
                 'subjects': subjects,
-                'datewise': datewise
+                'datewise': datewise,
+                'personal_details': personal_details
             }, "Success"
 
         except Exception as e:
