@@ -45,7 +45,7 @@ class LNCTAttendance:
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Connection': 'keep-alive'
         })
-        self.base_url = "https://accsoft2.lnctu.ac.in"
+        self.base_url = "https://accsoft.lnctu.ac.in"
         self.login_url = f"{self.base_url}/Accsoft2/studentLogin.aspx"
         self.attendance_url = f"{self.base_url}/AccSoft2/Parents/StuAttendanceStatus.aspx"
         self.session.verify = False
@@ -155,7 +155,7 @@ class LNCTAttendance:
     def get_subject_attendance(self):
         subjects = []
         try:
-            url = "https://accsoft2.lnctu.ac.in/AccSoft2/parents/subwiseattn.aspx"
+            url = f"{self.base_url}/AccSoft2/parents/subwiseattn.aspx"
             r = self.session.get(url, timeout=15)
             soup = BeautifulSoup(r.content, 'html.parser')
             
