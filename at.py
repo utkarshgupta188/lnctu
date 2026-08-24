@@ -430,52 +430,52 @@ def get_absent_dates(username: str = "", password: str = ""):
 # Format: Day -> [Periods] where each period has subject, time, and optional faculty
 TIMETABLE_DATA = {
     "Monday": [
-        {"time": "09:00-10:30", "subject": "Minor Project-II (Batch1/Batch2) (CV Raman Lab-1)"},
-        {"time": "10:30-11:20", "subject": "Agile Methodology (F-6)"},
-        {"time": "11:20-12:10", "subject": "Scala for Data Science Tools & Techniques (F-6)"},
+        {"time": "09:00-10:30", "subject": "Scala Lab (Batch1/Batch2) (CV Raman Lab-1)"},
+        {"time": "10:30-11:20", "subject": "Agile Methodology"},
+        {"time": "11:20-12:10", "subject": "Advanced Machine Learning"},
         {"time": "12:10-01:00", "subject": "LUNCH"},
-        {"time": "01:00-01:50", "subject": "Advanced Machine Learning (T1)"},
-        {"time": "01:50-02:40", "subject": "Mentor / Library (T2)"},
-        {"time": "02:40-03:30", "subject": "Cyber Security (T2)"},
+        {"time": "01:00-01:50", "subject": "Cyber Security"},
+        {"time": "01:50-03:30", "subject": "Minor Project-II (Batch1/Batch2) (CV Raman Lab-1)"},
     ],
 
     "Tuesday": [
-        {"time": "09:00-09:45", "subject": "Advanced Machine Learning (S3)"},
-        {"time": "09:45-10:30", "subject": "Scala for Data Science Tools & Techniques (S3)"},
-        {"time": "10:30-11:20", "subject": "Agile Methodology (S3)"},
-        {"time": "11:20-12:10", "subject": "Cyber Security (S3)"},
+        {"time": "09:00-09:45", "subject": "Agile Methodology"},
+        {"time": "09:45-10:30", "subject": "Cyber Security"},
+        {"time": "10:30-11:20", "subject": "Mentor / Library"},
+        {"time": "11:20-12:10", "subject": "Agile Methodology"},
         {"time": "12:10-01:00", "subject": "LUNCH"},
-        {"time": "01:00-01:50", "subject": "Cyber Security (S2)"},
-        {"time": "01:50-02:40", "subject": "Cyber Security (T2)"},
-        {"time": "02:40-03:30", "subject": "Agile Methodology (T2)"},
-    ],
-
-    "Wednesday": [
-        {"time": "09:00-10:30", "subject": "Scala Lab (Batch1/Batch2) (CV Raman Lab-1)"},
-        {"time": "10:30-11:20", "subject": "Cyber Security (S2)"},
-        {"time": "11:20-12:10", "subject": "Agile Methodology (S2)"},
-        {"time": "12:10-01:00", "subject": "LUNCH"},
-        {"time": "01:00-01:50", "subject": "Scala for Data Science Tools & Techniques (F2)"},
+        {"time": "01:00-01:50", "subject": "Scala for Data Science Tools & Techniques"},
         {"time": "01:50-03:30", "subject": "Advanced Machine Learning Lab (Batch1/Batch2) (CV Raman Lab-1)"},
     ],
 
-    "Thursday": [
-        {"time": "09:00-09:45", "subject": "Agile Methodology (S3)"},
-        {"time": "09:45-10:30", "subject": "Advanced Machine Learning (S3)"},
-        {"time": "10:30-11:20", "subject": "Scala for Data Science Tools & Techniques (S3)"},
-        {"time": "11:20-12:10", "subject": "Cyber Security (S3)"},
+    "Wednesday": [
+        {"time": "09:00-10:30", "subject": "Minor Project-II (Batch1/Batch2) (CV Raman Lab-1)"},
+        {"time": "10:30-11:20", "subject": "Scala for Data Science Tools & Techniques"},
+        {"time": "11:20-12:10", "subject": "Cyber Security"},
         {"time": "12:10-01:00", "subject": "LUNCH"},
-        {"time": "01:00-01:50", "subject": "Agile Methodology (F6)"},
-        {"time": "01:50-03:30", "subject": "Agile Lab (Batch1/Batch2) (CV Raman Lab-1)"},
+        {"time": "01:00-01:50", "subject": "Advanced Machine Learning"},
+        {"time": "01:50-02:40", "subject": "Agile Methodology"},
+        {"time": "02:40-03:30", "subject": "Agile Methodology"},
+    ],
+
+    "Thursday": [
+        {"time": "09:00-10:30", "subject": "Agile Lab (Batch1/Batch2) (CV Raman Lab-1)"},
+        {"time": "10:30-11:20", "subject": "Advanced Machine Learning"},
+        {"time": "11:20-12:10", "subject": "Agile Methodology"},
+        {"time": "12:10-01:00", "subject": "LUNCH"},
+        {"time": "01:00-01:50", "subject": "Scala for Data Science Tools & Techniques"},
+        {"time": "01:50-02:40", "subject": "Cyber Security"},
+        {"time": "02:40-03:30", "subject": "Cyber Security"},
     ],
 
     "Friday": [
-        {"time": "09:00-10:30", "subject": "Agile Lab (Batch1/Batch2) (S5/S6)"},
-        {"time": "10:30-11:20", "subject": "Cyber Security (S3)"},
-        {"time": "11:20-12:10", "subject": "Agile Methodology (S3)"},
+        {"time": "09:00-10:30", "subject": "Agile Lab (Batch1/Batch2) (CV Raman Lab-1)"},
+        {"time": "10:30-11:20", "subject": "Agile Methodology"},
+        {"time": "11:20-12:10", "subject": "Cyber Security"},
         {"time": "12:10-01:00", "subject": "LUNCH"},
-        {"time": "01:00-01:50", "subject": "Advanced Machine Learning (T1)"},
-        {"time": "01:50-03:30", "subject": "Minor Project-II (Batch1/Batch2) (CV Raman Lab-1)"},
+        {"time": "01:00-01:50", "subject": "Scala for Data Science Tools & Techniques"},
+        {"time": "01:50-02:40", "subject": "Advanced Machine Learning"},
+        {"time": "02:40-03:30", "subject": "Cyber Security"},
     ],
 }
 
