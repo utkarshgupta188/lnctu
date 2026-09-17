@@ -34,18 +34,33 @@ app.add_middleware(
 user_sessions = {}
 
 # ==============================
-# SCRAPER CLASS (UNCHANGED)
+# PORTAL CONFIG
+# ==============================
+
+PORTALS = {
+    'lnct': {
+        'name': 'LNCT University',
+        'base_url': 'https://accsoft.lnctu.ac.in',
+    },
+    'rgpv': {
+        'name': 'RGPV',
+        'base_url': 'https://portal.lnct.ac.in',
+    },
+}
+
+# ==============================
+# SCRAPER CLASS
 # ==============================
 
 class LNCTAttendance:
-    def __init__(self):
+    def __init__(self, base_url="https://accsoft.lnctu.ac.in"):
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Connection': 'keep-alive'
         })
-        self.base_url = "https://accsoft.lnctu.ac.in"
+        self.base_url = base_url.rstrip('/')
         self.login_url = f"{self.base_url}/Accsoft2/studentLogin.aspx"
         self.attendance_url = f"{self.base_url}/AccSoft2/Parents/StuAttendanceStatus.aspx"
         self.session.verify = False
@@ -275,31 +290,36 @@ def cleanup_expired_sessions():
     for u in expired:
         del user_sessions[u]
 
-def _get_or_create_session(username, password):
-    if username in user_sessions:
-        lnct = user_sessions[username]['lnct']
-        name = user_sessions[username].get('name', '')
-        data, msg = lnct.get_attendance()
+def _get_or_create_session(username, password, portal="lnct"):
+    if portal not in PORTALS:
+        raise HTTPException(status_code=400, detail="Unknown portal")
+    portal_base_url = PORTALS[portal]['base_url']
+    key = f"{portal}:{username}"
+
+    if key in user_sessions:
+        scraper = user_sessions[key]['scraper']
+        name = user_sessions[key].get('name', '')
+        data, msg = scraper.get_attendance()
         if data:
             data['student_name'] = name
             return data, "Used cached session"
-        del user_sessions[username]
+        del user_sessions[key]
 
-    lnct = LNCTAttendance()
-    result = lnct.login(username, password)
+    scraper = LNCTAttendance(base_url=portal_base_url)
+    result = scraper.login(username, password)
     ok = result[0]
     msg = result[1]
     name = result[2] if len(result) > 2 else ""
     if not ok:
         raise HTTPException(status_code=401, detail=msg)
 
-    user_sessions[username] = {
-        'lnct': lnct,
+    user_sessions[key] = {
+        'scraper': scraper,
         'name': name,
         'last_login': datetime.now()
     }
 
-    data, msg = lnct.get_attendance()
+    data, msg = scraper.get_attendance()
     if not data:
         raise HTTPException(status_code=500, detail=msg)
     
@@ -312,12 +332,14 @@ def _get_or_create_session(username, password):
 # ==============================
 
 @app.get("/attendance")
-def attendance(username: str = "", password: str = ""):
+def attendance(username: str = "", password: str = "", portal: str = "lnct"):
     if not username or not password:
         raise HTTPException(status_code=400, detail="Username and password are required")
 
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
+    data['portal'] = portal
+    data['portal_name'] = PORTALS[portal]['name']
     return {"success": True, "message": msg, "data": data}
 
 
@@ -326,12 +348,12 @@ def attendance(username: str = "", password: str = ""):
 # ==============================
 
 @app.get("/attendance-lite")
-def attendance_lite(username: str = "", password: str = ""):
+def attendance_lite(username: str = "", password: str = "", portal: str = "lnct"):
     if not username or not password:
         raise HTTPException(status_code=400, detail="Username and password are required")
 
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
 
     return {
         "success": True,
@@ -353,7 +375,7 @@ def attendance_lite(username: str = "", password: str = ""):
 # ==============================
 
 @app.get("/absent-dates")
-def get_absent_dates(username: str = "", password: str = ""):
+def get_absent_dates(username: str = "", password: str = "", portal: str = "lnct"):
     """
     Returns all the dates where the student was absent.
     Includes both a flat list and a month-wise grouped dictionary.
@@ -362,7 +384,7 @@ def get_absent_dates(username: str = "", password: str = ""):
         raise HTTPException(status_code=400, detail="Username and password are required")
 
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
     
     if not data or 'datewise' not in data:
         raise HTTPException(status_code=500, detail="Failed to fetch datewise attendance data")
@@ -507,13 +529,13 @@ def subjects_match(name1, name2):
 
 
 @app.get("/debug-subjects")
-def debug_subjects(username: str = "", password: str = ""):
+def debug_subjects(username: str = "", password: str = "", portal: str = "lnct"):
     """Debug endpoint to see actual subject names and matching"""
     if not username or not password:
         raise HTTPException(status_code=400, detail="Username and password are required")
     
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
     
     if not data or 'subjects' not in data:
         raise HTTPException(status_code=500, detail="Failed to fetch attendance data")
@@ -598,7 +620,7 @@ def calculate_risk_metrics(subj, threshold=75.0):
 
 
 @app.get("/risk-engine")
-def get_risk_engine(username: str = "", password: str = "", threshold: float = 75.0):
+def get_risk_engine(username: str = "", password: str = "", threshold: float = 75.0, portal: str = "lnct"):
     """
     Attendance Risk Engine - Detailed risk analysis
     """
@@ -606,7 +628,7 @@ def get_risk_engine(username: str = "", password: str = "", threshold: float = 7
         raise HTTPException(status_code=400, detail="Username and password are required")
 
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
     
     if not data or 'subjects' not in data:
         raise HTTPException(status_code=500, detail="Failed to fetch attendance data")
@@ -656,7 +678,7 @@ def get_risk_engine(username: str = "", password: str = "", threshold: float = 7
 
 
 @app.get("/leave-simulator")
-def simulate_leave(username: str = "", password: str = "", day: str = ""):
+def simulate_leave(username: str = "", password: str = "", day: str = "", portal: str = "lnct"):
     """
     Leave Simulation Engine - Simulate missing classes on a specific day
     """
@@ -667,7 +689,7 @@ def simulate_leave(username: str = "", password: str = "", day: str = ""):
         raise HTTPException(status_code=400, detail=f"Valid day required. Options: {', '.join(TIMETABLE_DATA.keys())}")
 
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
     
     if not data or 'subjects' not in data:
         raise HTTPException(status_code=500, detail="Failed to fetch attendance data")
@@ -793,7 +815,7 @@ def simulate_leave(username: str = "", password: str = "", day: str = ""):
 
 
 @app.get("/analysis")
-def get_attendance_analysis(username: str = "", password: str = ""):
+def get_attendance_analysis(username: str = "", password: str = "", portal: str = "lnct"):
     """
     Returns detailed analysis including:
     - Subject-wise attendance status
@@ -805,7 +827,7 @@ def get_attendance_analysis(username: str = "", password: str = ""):
         raise HTTPException(status_code=400, detail="Username and password are required")
 
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
     
     if not data or 'subjects' not in data:
         raise HTTPException(status_code=500, detail="Failed to fetch attendance data")
@@ -927,7 +949,7 @@ def get_attendance_analysis(username: str = "", password: str = ""):
 
 
 @app.get("/leave-simulator-week")
-def simulate_leave_week(username: str = "", password: str = ""):
+def simulate_leave_week(username: str = "", password: str = "", portal: str = "lnct"):
     """
     Leave Simulation Engine - Simulate missing classes for the whole week
     Returns impact analysis for each day (Monday-Friday)
@@ -936,7 +958,7 @@ def simulate_leave_week(username: str = "", password: str = ""):
         raise HTTPException(status_code=400, detail="Username and password are required")
     
     cleanup_expired_sessions()
-    data, msg = _get_or_create_session(username, password)
+    data, msg = _get_or_create_session(username, password, portal)
     
     if not data or 'subjects' not in data:
         raise HTTPException(status_code=500, detail="Failed to fetch attendance data")

@@ -24,6 +24,31 @@ document.addEventListener('DOMContentLoaded', () => {
     let analysisData = null;
     let currentUsername = '';
     let currentPassword = '';
+    let currentPortal = 'lnct';
+
+    // Portal tab switching
+    const portalTabs = document.querySelectorAll('.portal-tab');
+    portalTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            currentPortal = tab.dataset.portal;
+            portalTabs.forEach(t => t.classList.toggle('active', t === tab));
+            updatePortalUI();
+            loginError.classList.add('hidden');
+        });
+    });
+
+    function updatePortalUI() {
+        const isRgPV = currentPortal === 'rgpv';
+        document.getElementById('brand-title').textContent = isRgPV ? 'RGPV Attendance' : 'LNCT Attendance';
+        document.getElementById('brand-subtitle').textContent = isRgPV ? 'RGPV student attendance tracker' : 'Track your academic progress';
+        document.getElementById('username').placeholder = isRgPV ? 'Login ID / Enrollment No' : 'Login ID (11111xxxxx)';
+    }
+
+    function setActivePortal(portal) {
+        currentPortal = portal || 'lnct';
+        portalTabs.forEach(t => t.classList.toggle('active', t.dataset.portal === currentPortal));
+        updatePortalUI();
+    }
 
     // Auto-login if credentials exist in localStorage
     checkAutoLogin();
@@ -38,9 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const oneMonth = 30 * 24 * 60 * 60 * 1000;
                 if (Date.now() - creds.savedAt < oneMonth) {
                     // Auto login
+                    setActivePortal(creds.portal || 'lnct');
                     document.getElementById('username').value = creds.username;
                     document.getElementById('password').value = creds.password;
-                    await performLogin(creds.username, creds.password);
+                    await performLogin(creds.username, creds.password, currentPortal);
                 } else {
                     // Expired, remove it
                     localStorage.removeItem('lnctu_credentials');
@@ -56,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const creds = {
             username: username,
             password: password,
+            portal: currentPortal,
             savedAt: Date.now()
         };
         localStorage.setItem('lnctu_credentials', JSON.stringify(creds));
@@ -67,7 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Perform login
-    async function performLogin(username, password) {
+    async function performLogin(username, password, portal) {
+        currentPortal = portal || currentPortal;
         currentUsername = username;
         currentPassword = password;
 
@@ -75,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginError.classList.add('hidden');
 
         try {
-            const response = await fetch(`/attendance?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+            const response = await fetch(`/attendance?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&portal=${encodeURIComponent(currentPortal)}`);
             const result = await response.json();
 
             if (result.success) {
@@ -100,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        await performLogin(username, password);
+        await performLogin(username, password, currentPortal);
     });
 
     logoutBtn.addEventListener('click', () => {
@@ -109,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginSection.classList.add('active-section');
         loginForm.reset();
         currentData = null;
+        setActivePortal('lnct');
         // Clear saved credentials on logout
         clearCredentials();
     });
@@ -447,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAnalysis(username, password) {
         try {
-            const response = await fetch(`/analysis?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+            const response = await fetch(`/analysis?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&portal=${encodeURIComponent(currentPortal)}`);
             const result = await response.json();
             if (result.success && result.data) {
                 analysisData = result.data;
@@ -705,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const threshold = parseFloat(document.getElementById('risk-threshold').value) || 75;
 
         try {
-            const response = await fetch(`/risk-engine?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}&threshold=${threshold}`);
+            const response = await fetch(`/risk-engine?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}&threshold=${threshold}&portal=${encodeURIComponent(currentPortal)}`);
             const result = await response.json();
             if (result.success) {
                 renderRiskEngine(result.data);
@@ -742,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('simulation-details').innerHTML = '';
 
         try {
-            const response = await fetch(`/leave-simulator?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}&day=${encodeURIComponent(day)}`);
+            const response = await fetch(`/leave-simulator?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}&day=${encodeURIComponent(day)}&portal=${encodeURIComponent(currentPortal)}`);
             const result = await response.json();
             if (result.success) {
                 renderSimulation(result.data);
@@ -775,7 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(`/leave-simulator-week?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}`);
+            const response = await fetch(`/leave-simulator-week?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}&portal=${encodeURIComponent(currentPortal)}`);
             const result = await response.json();
             if (result.success) {
                 // If the render method exists, call it. Otherwise do nothing.
@@ -1093,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bodyDiv.innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--accent-primary);"></i><p style="margin-top: 1rem; color: var(--text-secondary);">Loading absent dates...</p></div>';
 
             try {
-                const response = await fetch(`/absent-dates?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}`);
+                const response = await fetch(`/absent-dates?username=${encodeURIComponent(currentUsername)}&password=${encodeURIComponent(currentPassword)}&portal=${encodeURIComponent(currentPortal)}`);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -1351,9 +1380,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get current date
             const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
+            const universityName = currentPortal === 'rgpv' ? 'RGPV, BHOPAL (LNCT GROUP OF COLLEGES)' : 'LNCT UNIVERSITY, BHOPAL (M.P.)';
+
             const template = `TO,
 THE HEAD OF DEPARTMENT
-LNCT UNIVERSITY, BHOPAL (M.P.)
+${universityName}
 
 DATE: ${today}
 
