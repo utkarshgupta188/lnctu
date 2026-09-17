@@ -38,10 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updatePortalUI() {
-        const isRgPV = currentPortal === 'rgpv';
-        document.getElementById('brand-title').textContent = isRgPV ? 'RGPV Attendance' : 'LNCT Attendance';
-        document.getElementById('brand-subtitle').textContent = isRgPV ? 'RGPV student attendance tracker' : 'Track your academic progress';
-        document.getElementById('username').placeholder = isRgPV ? 'Login ID / Enrollment No' : 'Login ID (11111xxxxx)';
+        const isLnct = currentPortal === 'lnct';
+        document.getElementById('brand-title').textContent = isLnct ? 'LNCTU Attendance' : 'LNCT Attendance';
+        document.getElementById('brand-subtitle').textContent = 'Track your attendance';
+        document.getElementById('username').placeholder = isLnct ? 'Login ID (11111xxxxx)' : 'Login ID / Enrollment No';
     }
 
     function setActivePortal(portal) {
@@ -1380,7 +1380,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get current date
             const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            const universityName = currentPortal === 'rgpv' ? 'RGPV, BHOPAL (LNCT GROUP OF COLLEGES)' : 'LNCT UNIVERSITY, BHOPAL (M.P.)';
+            const universityName = currentPortal === 'rgpv' ? 'LNCT GROUP OF COLLEGES, BHOPAL (RGPV)' : 'LNCT UNIVERSITY, BHOPAL (M.P.)';
 
             const template = `TO,
 THE HEAD OF DEPARTMENT

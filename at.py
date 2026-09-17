@@ -39,11 +39,11 @@ user_sessions = {}
 
 PORTALS = {
     'lnct': {
-        'name': 'LNCT University',
+        'name': 'LNCTU',
         'base_url': 'https://accsoft.lnctu.ac.in',
     },
     'rgpv': {
-        'name': 'RGPV',
+        'name': 'LNCT',
         'base_url': 'https://portal.lnct.ac.in',
     },
 }
